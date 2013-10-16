@@ -1,3 +1,14 @@
+/*
+ * se
+ *
+ * @licence: GPLv2
+ * @author: Emilien Mantel
+ * @website: http://www.debianiste.org
+ * @github: https://github.com/HanXHX
+ *
+ */ 
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -6,8 +17,10 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#if defined(__linux__)
 #include <bsd/stdlib.h>
 #include <bsd/string.h>
+#endif
 
 #define OUT_COLUMNS 5
 #define NORMAL_LIST 0
@@ -126,13 +139,13 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 	element->next = NULL;
 
 
-	// Aucun élément dans la liste, on insère celui qui vient d'être crée
+	// No element in list, we return the new one
 	if(list == NULL)
 	{
 		return element;
 	}
 
-	// Parcours liste
+	// loop list 
 	while(csl != NULL)
 	{
 		ch1 = extract_hostname(hostname);
@@ -151,22 +164,23 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 
 	if(tmp)
 	{
-		// Insertion après
+		// Insert next
 		tmp->next = element;
 	}
 	else
 	{
-		// Insertion en tête
+		// Head insert
 		list = element;
 	}
 	return list;
 }
 
+#define MAX_LENGTH_STRING 128
 slist load_config(void)
 {
 	slist list = NULL;
 	char* ssh_config_file = NULL;
-	char* hostname = alloca(sizeof(char) * 128);
+	char* hostname = NULL;
 	FILE *fp = NULL;
 	char *line = NULL;
 	size_t len = 0;
@@ -179,10 +193,14 @@ slist load_config(void)
 		exit(EXIT_FAILURE);
 	}
 
-	if(NULL == (ssh_config_file = alloca(sizeof(char) * 128)))
+	if(NULL == (ssh_config_file = alloca(sizeof(char) * MAX_LENGTH_STRING)))
 		ALLOC_FAILURE();
 
-	sprintf(ssh_config_file, "%s/.ssh/config", getenv("HOME"));
+
+	if(NULL == (hostname = alloca(sizeof(char) * MAX_LENGTH_STRING)))
+		ALLOC_FAILURE();
+
+	snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING, "%s/.ssh/config", getenv("HOME"));
 
 	if(NULL == (fp = fopen(ssh_config_file, "r")))
 	{
@@ -356,7 +374,7 @@ char* ia_get_server(slist list, char* input)
 	if(NULL == (p_ss = malloc(sizeof(score_server) * MAX_SS)) )
 		ALLOC_FAILURE();
 
-	// test si root
+	// Check if root 
 	for(i = 0; i < (int) (sizeof(root_special_chars) / sizeof(char)); i++)
 	{
 		if(input[0] == root_special_chars[i])
@@ -375,7 +393,7 @@ char* ia_get_server(slist list, char* input)
 			continue;
 		}
 		ss.score = 0;
-		//TODO : améliorable
+		//TODO : I can code better :) 
 		if(input[id_char] == p_list->hostname[server_char]) // first letter OK
 		{
 			if(NULL != strstr(p_list->hostname, server_num ))
@@ -416,7 +434,7 @@ char* ia_get_server(slist list, char* input)
 	{
 		tmp = malloc(strlen(ss.hostname) * sizeof(char) + (6*sizeof(char)));
 		strcpy(tmp, "root@");
-		strcat(tmp, ss.hostname);
+		strlcat(tmp, ss.hostname, sizeof(tmp));
 		FREE(ss.hostname);
 		return tmp;
 	}
@@ -434,7 +452,7 @@ char* scan_input(slist list)
 		ALLOC_FAILURE();
 
 	scanf("%4s", input);
-	//case digit
+	// case digit
 	if(sscanf(input, "%d", (int*) &server_id ) == 1)
 	{
 		while(p != NULL)
