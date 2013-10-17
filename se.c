@@ -426,9 +426,9 @@ char* ia_get_server(slist list, char* input)
 
 	if(is_root == 1)
 	{
-		tmp = malloc(strlen(ss.hostname) * sizeof(char) + (6*sizeof(char)));
+		tmp = malloc(strlen(ss.hostname) * sizeof(char) + (sizeof(char) * 6));
 		strcpy(tmp, "root@");
-		strlcat(tmp, ss.hostname, sizeof(tmp));
+		strlcat(tmp, ss.hostname, strlen(ss.hostname) + 6);
 		FREE(ss.hostname);
 		return tmp;
 	}
