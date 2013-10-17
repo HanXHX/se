@@ -176,10 +176,9 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 }
 
 #define MAX_LENGTH_STRING 128
-slist load_config(void)
+slist load_config(char* ssh_config_file)
 {
 	slist list = NULL;
-	char* ssh_config_file = NULL;
 	char* hostname = NULL;
 	FILE *fp = NULL;
 	char *line = NULL;
@@ -193,14 +192,9 @@ slist load_config(void)
 		exit(EXIT_FAILURE);
 	}
 
-	if(NULL == (ssh_config_file = alloca(sizeof(char) * MAX_LENGTH_STRING)))
-		ALLOC_FAILURE();
-
 
 	if(NULL == (hostname = alloca(sizeof(char) * MAX_LENGTH_STRING)))
 		ALLOC_FAILURE();
-
-	snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING, "%s/.ssh/config", getenv("HOME"));
 
 	if(NULL == (fp = fopen(ssh_config_file, "r")))
 	{
@@ -555,12 +549,35 @@ void ssh(char* hostname)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
 	slist list_server = NULL;
 	char* hostname = NULL;
+	int c;
+	char* ssh_config_file = NULL;
 
-	list_server = load_config();
+	while((c = getopt(argc, argv, "c:h")) != -1)
+	{
+		switch(c)
+		{
+			case 'c':
+				ssh_config_file = optarg;
+				break;
+			case 'h':
+			default:
+				abort();
+		}
+	}
+
+	if(ssh_config_file == NULL)
+	{
+		if(NULL == (ssh_config_file = malloc(sizeof(char) * MAX_LENGTH_STRING)))
+			ALLOC_FAILURE();
+		snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING, "%s/.ssh/config", getenv("HOME"));
+	}
+
+
+	list_server = load_config(ssh_config_file);
 
 	display_list(list_server);
 	printf("\n");
@@ -570,6 +587,7 @@ int main(void)
 	ssh(hostname);
 
 	FREE(hostname);
+	FREE(ssh_config_file);
 	free_list(list_server);
 
 	return 0;
