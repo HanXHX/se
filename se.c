@@ -508,7 +508,7 @@ void terminal_title(char* title)
 }
 
 
-void ssh(char* hostname)
+void ssh(const char* hostname, const char* ssh_bin)
 {
 	char* command_arg[64];
 	char terminal[64] = "";
@@ -532,9 +532,9 @@ void ssh(char* hostname)
 	else if(child_pid == 0)
 	{
 		// child process
-		if(execv(SSH_BIN, command_arg) == -1)
+		if(execv(ssh_bin, command_arg) == -1)
 		{
-			fprintf(stderr, "Cannot exec SSH_BIN: %s\n", SSH_BIN);
+			fprintf(stderr, "Cannot exec SSH_BIN: %s\n", ssh_bin);
 			exit(EXIT_FAILURE);
 		}
 		exit(EXIT_SUCCESS);
@@ -555,11 +555,15 @@ int main(int argc, char **argv)
 	char* hostname = NULL;
 	int c;
 	char* ssh_config_file = NULL;
+	char* ssh_bin = NULL;
 
-	while((c = getopt(argc, argv, "c:h")) != -1)
+	while((c = getopt(argc, argv, "b:c:h")) != -1)
 	{
 		switch(c)
 		{
+			case 'b':
+				ssh_bin = optarg;
+				break;
 			case 'c':
 				ssh_config_file = optarg;
 				break;
@@ -576,6 +580,8 @@ int main(int argc, char **argv)
 		snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING, "%s/.ssh/config", getenv("HOME"));
 	}
 
+	if(ssh_bin == NULL)
+		ssh_bin = strdup(SSH_BIN);
 
 	list_server = load_config(ssh_config_file);
 
@@ -584,8 +590,9 @@ int main(int argc, char **argv)
 	display_pref_list(list_server);
 
 	hostname = scan_input(list_server);
-	ssh(hostname);
+	ssh(hostname, ssh_bin);
 
+	// Valgrind loves me :)
 	FREE(hostname);
 	FREE(ssh_config_file);
 	free_list(list_server);
