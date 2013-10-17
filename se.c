@@ -176,7 +176,7 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 }
 
 #define MAX_LENGTH_STRING 128
-slist load_config(char* ssh_config_file)
+slist load_config(const char* ssh_config_file)
 {
 	slist list = NULL;
 	char* hostname = NULL;
@@ -562,10 +562,10 @@ int main(int argc, char **argv)
 		switch(c)
 		{
 			case 'b':
-				ssh_bin = optarg;
+				ssh_bin = strdup(optarg);
 				break;
 			case 'c':
-				ssh_config_file = optarg;
+				ssh_config_file = strdup(optarg);
 				break;
 			case 'h':
 			default:
@@ -595,6 +595,7 @@ int main(int argc, char **argv)
 	// Valgrind loves me :)
 	FREE(hostname);
 	FREE(ssh_config_file);
+	FREE(ssh_bin);
 	free_list(list_server);
 
 	return 0;
