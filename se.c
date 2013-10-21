@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <getopt.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -22,6 +23,7 @@
 #include <bsd/string.h>
 #endif
 
+#define VERSION "1.0-git"
 #define OUT_COLUMNS 5
 #define NORMAL_LIST 0
 #define PREF_LIST 1
@@ -445,7 +447,8 @@ char* scan_input(slist list)
 	if( NULL == (input = malloc( sizeof(char) * 4) )) 
 		ALLOC_FAILURE();
 
-	scanf("%4s", input);
+	while(scanf("%4s", input) == 0);
+
 	// case digit
 	if(sscanf(input, "%d", (int*) &server_id ) == 1)
 	{
@@ -508,7 +511,7 @@ void terminal_title(char* title)
 }
 
 
-void ssh(const char* hostname, const char* ssh_bin)
+void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 {
 	char* command_arg[64];
 	char terminal[64] = "";
@@ -516,7 +519,9 @@ void ssh(const char* hostname, const char* ssh_bin)
 	pid_t child_pid;
 
 	command_arg[i++] = strdup("ssh");
-	command_arg[i++] = strdup(hostname);;
+	command_arg[i++] = strdup("-F");
+	command_arg[i++] = strdup(ssh_config_file);
+	command_arg[i++] = strdup(hostname);
 	command_arg[i] = NULL; 
 
 	strlcat(terminal, "ssh://", sizeof(terminal));
@@ -553,11 +558,19 @@ int main(int argc, char **argv)
 {
 	slist list_server = NULL;
 	char* hostname = NULL;
-	int c;
+	int c, option_index = 0;
 	char* ssh_config_file = NULL;
 	char* ssh_bin = NULL;
 
-	while((c = getopt(argc, argv, "b:c:h")) != -1)
+	static struct option long_options[] = {
+		{"bin", required_argument, 0, 'b'},
+		{"config", required_argument, 0, 'c'},
+		{"help", no_argument, 0, 'h'},
+		{"version", no_argument, 0, 'v'},
+		{0, 0, 0, 0}
+	};
+
+	while((c = getopt_long(argc, argv, "b:c:hv", long_options, &option_index)) != -1)
 	{
 		switch(c)
 		{
@@ -568,6 +581,11 @@ int main(int argc, char **argv)
 				ssh_config_file = strdup(optarg);
 				break;
 			case 'h':
+				printf("HELP\n");
+				exit(EXIT_FAILURE);
+			case 'v':
+				printf("se %s\n", VERSION);
+				exit(EXIT_FAILURE);
 			default:
 				abort();
 		}
@@ -590,7 +608,7 @@ int main(int argc, char **argv)
 	display_pref_list(list_server);
 
 	hostname = scan_input(list_server);
-	ssh(hostname, ssh_bin);
+	ssh(hostname, ssh_bin, ssh_config_file);
 
 	// Valgrind loves me :)
 	FREE(hostname);
