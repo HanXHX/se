@@ -8,7 +8,7 @@ ifeq ($(UNAME), Linux)
 endif
 
 all:
-	$(CC) se.c -Wall -Werror $(CONSTANTS) $(L) -o se
+	$(CC) se.c -O3 -Wall -Werror $(CONSTANTS) $(L) -o se
 
 clean:
 	rm -f se 
