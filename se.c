@@ -345,7 +345,7 @@ char* ia_get_server(slist list, char* input)
 		unsigned short score;
 	} score_server;
 	slist p_list = list;
-	int i = 0, j = 0, is_root = 0, id_char = 0, server_char = 0;
+	int i = 0, j = 0, is_root = 0, id_char = 0;
 	char* p_char = NULL;
 	char* tmp = NULL;
 	char server_num[4] = "";
@@ -388,19 +388,24 @@ char* ia_get_server(slist list, char* input)
 			p_list = p_list->next;
 			continue;
 		}
+
 		ss.score = 0;
+		id_char = 0;
+
 		//TODO : I can code better :) 
-		if(input[id_char] == p_list->hostname[server_char]) // first letter OK
+		if(input[id_char] == p_list->hostname[id_char]) // first letter OK
 		{
-			if(NULL != strstr(p_list->hostname, server_num ))
+			if(NULL != strstr(p_list->hostname, server_num )) // we have the good number
 			{
 				ss.hostname = strdup(p_list->hostname);
 				ss.score++;
-				while(input[id_char] != '\0' && input[id_char] == p_list->hostname[server_char])
+				while(input[id_char] != '\0')
 				{
-					ss.score++;
+					if(input[id_char] == p_list->hostname[id_char])
+					{
+						ss.score++;
+					}
 					id_char++;
-					server_char++;
 				}
 				p_ss[j] = ss;
 				j++;
@@ -418,6 +423,7 @@ char* ia_get_server(slist list, char* input)
 	ss.score = 0;
 	ss.hostname = NULL;
 
+	// We search the better hostname
 	for(i = 0; i < j; i++)
 	{
 		if(ss.score < p_ss[i].score)
