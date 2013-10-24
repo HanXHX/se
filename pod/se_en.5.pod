@@ -1,0 +1,92 @@
+=encoding utf8
+
+=head1 NAME
+
+se - Fast connection to SSH configugration file
+
+=head1 SYNOPSIS
+
+se(1) parse your SSH configuration and pick your hostnames. 
+
+You can have 4 types of hostname:
+
+=over 4
+
+=item 1. 
+
+default hostname B<Host bar.tld>
+
+=item 2.
+
+other hostnames B<#MYHOST foo@bar.tld>
+
+=item 3.
+
+prefered hostnames B<#PREFHOST foo@bar.tld>
+
+=item 4.
+
+exclude hostnames B<#EXCLUDE bar.tld>
+
+=back
+
+B<foo> { B<this>|B<that> } [ B<-flags> ] [ B<-o> I<option> ] I<argument> [ I<more...> ]
+
+=head1 DESCRIPTION
+
+se(1) reads your SSH config file and check every line.
+
+=head2 Default
+
+Every line started by B<Host> is added in the list.
+ssh_config(5) accepts wildcards. se(1) exclude every lines with B<*>.
+
+Default hosts can be accessed by their id (digits) or by "AI". Exemple: foobar-01 can be accessed by B<f1> or B<fo1>...
+
+Some "default hostname" can be excluded (see: I<Exclude hostname>).
+
+=head2 Other
+
+You can add other hostnames in comments with B<#MYHOST foo.bar>. These hosts are only acceded by digit in stdin.
+
+=head2 Prefered 
+
+Prefered host are only available with a single letter in se(1). In you configuration, you can set B<#PREFHOST foo.bar>. 
+
+Be careful, in alphabet, we have 26 letters (a -> z).
+
+=head2 Exclude
+
+You can exclude some "default hosts" in se(1). You can set with B<#EXCLUDE foo.bar>. Allways put the exclude in the end of your SSH configuration.
+
+=head1 EXAMPLE
+
+Exemple of SSH config:
+	
+	Host linux-01
+	    User root
+	    Hostname 127.0.0.1
+	    Port 40372
+	
+	Host linux-02
+	    User root
+	    Hostname 127.0.0.1
+	    Port 40373
+	
+	Host relay
+		User relay 
+		Hostname 10.0.0.1
+		LocalForward 12345 www.foo.bar:22
+	
+	#MYHOST user@linux-02
+	#PREFHOST user@linux-02
+	#EXCLUDE relay
+
+=head1 AUTHOR
+
+se(1) was writen by Emilien Mantel <S<emilien.mantel@debianiste.org>>
+
+=head1 SEE ALSO
+
+Other man pages to check out, like se(1), ssh(7), ssh_config(5).
+

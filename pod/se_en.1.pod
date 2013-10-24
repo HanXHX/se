@@ -1,0 +1,58 @@
+=encoding utf8
+
+=head1 NAME
+
+se - Fast connection to SSH
+
+=head1 SYNOPSIS
+
+B<se> [I<OPTION>]...
+
+=head1 DESCRIPTION
+
+B<se> is a front end for SSH. It parse your SSH config file to pick your servers. You can add servers with comments in config. 
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-b>, B<--binary> I<BINARY>
+
+Full path to SSH binary (default: /usr/bin/ssh)
+
+=item B<-c>, B<--config> I<config-file>
+
+Use an alternate SSH config file (default: ~/.ssh/config)
+
+=item B<-h>, B<--help>
+
+Display help and exit
+
+=item B<-v>, B<--version>
+
+Output version information and exit
+
+=back
+
+=head1 FILES
+
+=over 4
+
+=item I<~/.ssh/config>
+
+Per user configuration file. See se(5) for further details.
+
+=back
+
+=head1 BUGS
+
+Please write me an email...
+
+=head1 AUTHOR
+
+B<se> was writen by Emilien Mantel <S<emilien.mantel@debianiste.org>>.
+
+=head1 SEE ALSO
+
+se(1), ssh(7), ssh_config(5)
+
