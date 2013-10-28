@@ -1,0 +1,88 @@
+=encoding utf8
+
+=head1 NAME
+
+se - Fichier de configuration
+
+=head1 SYNOPSIS
+
+se(1) lit votre configuration SSH et récupère les noms d'hôte. 
+
+Vous avez 4 types de noms :
+
+=over 4
+
+=item 1. 
+
+Nom par défaut B<Host bar.tld>
+
+=item 2.
+
+Autres noms B<#MYHOST foo@bar.tld>
+
+=item 3.
+
+Noms préférés B<#PREFHOST foo@bar.tld>
+
+=item 4.
+
+Noms à excluee B<#EXCLUDE bar.tld>
+
+=back
+
+=head1 DESCRIPTION
+
+=head2 Nom par défaut
+
+Toute ligne començant par B<Host> est ajoutée à la liste.
+ssh_config(5) accepte les jokers. se(1) exclue toute les lignes avec des B<*>.
+
+Ils peuvent être accédés par leur "id" (chiffres) pour par "IA". Exemple : foobar-01 peut être accédé par B<f1> ou B<fo1>...
+
+Certains nombs peuvent être exclus (voir : I<Noms exclus>).
+
+=head2 Autres noms
+
+Vous pouvez ajouter d'autres noms qui ne sont pas présent dans la configuration ssh (B<#MYHOST foo.bar>). Ces noms ne peuvent être accédés uniquement par leur "id".
+
+=head2 Noms préférés 
+
+Les noms préférés sont des raccourcis rapides et accessibles uniquement par une lettre. Dans votre conguration SSH, vous pouvez mettre : B<#PREFHOST foo.bar>.
+
+Attention, dans l'alphabet, nous avons uniquement 26 lettres (a -> z).
+
+=head2 Noms exclus
+
+Vous pouvez exclude des noms par défaut. Dans la conguration, vous pouvez mettre : B<#EXCLUDE foo.bar>. Attention, il faut toujours ajouter la liste d'exclusion à la fin du fichier de configuration.
+
+=head1 EXEMPLE
+
+Exemple d'un fichier de configuration :
+	
+	Host linux-01
+	    User root
+	    Hostname 127.0.0.1
+	    Port 40372
+	
+	Host linux-02
+	    User root
+	    Hostname 127.0.0.1
+	    Port 40373
+	
+	Host relay
+		User relay 
+		Hostname 10.0.0.1
+		LocalForward 12345 www.foo.bar:22
+	
+	#MYHOST user@linux-02
+	#PREFHOST user@linux-02
+	#EXCLUDE relay
+
+=head1 AUTEUR
+
+se(1) a été écrit par Emilien Mantel <S<emilien.mantel@debianiste.org>>.
+
+=head1 VOIR AUSSI
+
+se(1), ssh(1), ssh_config(5)
+

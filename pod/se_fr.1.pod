@@ -1,0 +1,62 @@
+=encoding utf8
+
+=head1 NAME
+
+se - Connexion rapide à SSH
+
+=head1 SYNOPSIS
+
+B<se> [I<OPTION>]...
+
+=head1 DESCRIPTION
+
+B<se> est une surccouche de SSH. Il lit votre configuration et récupère une liste de noms d'hôtes. Vous pouvez aussi ajouter des noms en commentaire.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-b>, B<--binary> I<BINARY>
+
+Chemin absolu au binaire SSH (par défaut : /usr/bin/ssh)
+
+=item B<-c>, B<--config> I<config-file>
+
+Utiliser un autre fichier de configuration SSH (par défaut :  ~/.ssh/config)
+
+=item B<-h>, B<--help>
+
+Affiche l'aide et quitte le programme
+
+=item B<-o>, B<--out-columns> I<NOMBRE>
+
+Nombre de colonnes à afficher (par défaut : 5)
+
+=item B<-v>, B<--version>
+
+Affiche la version et quitte le programme
+
+=back
+
+=head1 FILES
+
+=over 4
+
+=item I<~/.ssh/config>
+
+Configuration par utilisateur. Voir se(5) pour plus détails.
+
+=back
+
+=head1 BUGS
+
+Envoyez moi un email...
+
+=head1 AUTEUR
+
+B<se> a été écrit par Emilien Mantel <S<emilien.mantel@debianiste.org>>.
+
+=head1 VOIR AUSSI 
+
+se(1), ssh(7), ssh_config(5)
+
