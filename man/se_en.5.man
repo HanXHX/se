@@ -154,7 +154,7 @@ exclude hostnames \fB#EXCLUDE bar.tld\fR
 Every line started by \fBHost\fR is added in the list.
 \&\fIssh_config\fR\|(5) accepts wildcards. \fIse\fR\|(1) exclude every lines with \fB*\fR.
 .PP
-Default hosts can be accessed by their id (digits) or by \*(L"\s-1AI\s0\*(R". Exemple: foobar\-01 can be accessed by \fBf1\fR or \fBfo1\fR...
+Default hosts can be accessed by their id (digits) or by \*(L"\s-1AI\s0\*(R". Example: foobar\-01 can be accessed by \fBf1\fR or \fBfo1\fR...
 .PP
 Some \*(L"default hostname\*(R" can be excluded (see: \fIExclude hostname\fR).
 .SS "Other"
@@ -170,7 +170,7 @@ Be careful, in alphabet, we have 26 letters (a \-> z).
 You can exclude some \*(L"default hosts\*(R" in \fIse\fR\|(1). You can set with \fB#EXCLUDE foo.bar\fR. Allways put the exclude in the end of your \s-1SSH\s0 configuration.
 .SH "EXAMPLE"
 .IX Header "EXAMPLE"
-Exemple of \s-1SSH\s0 config:
+Example of \s-1SSH\s0 config:
 .PP
 .Vb 4
 \&        Host linux\-01
