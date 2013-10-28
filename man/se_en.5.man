@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "se 5"
-.TH se 5 "2013-10-24" "1.0-git" ""
+.TH se 5 "2013-10-28" "1.0-git" ""
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -197,4 +197,4 @@ Exemple of \s-1SSH\s0 config:
 \&\fIse\fR\|(1) was writen by Emilien Mantel <emilien.mantel@debianiste.org>
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
-Other man pages to check out, like \fIse\fR\|(1), \fIssh\fR\|(7), \fIssh_config\fR\|(5).
+\&\fIse\fR\|(1), \fIssh\fR\|(1), \fIssh_config\fR\|(5)
