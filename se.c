@@ -288,7 +288,7 @@ void display_host(server* s, int number, const int show_type)
 	}
 }
 
-void display_list(slist list)
+void display_list(slist list, int modulo_display)
 {
 	int i = 1;
 	slist p_server = list;
@@ -297,7 +297,7 @@ void display_list(slist list)
 		if(p_server->def == 1 || p_server->my == 1)
 		{
 			display_host(p_server, i, NORMAL_LIST);
-			if(i % OUT_COLUMNS == 0)
+			if(i % modulo_display == 0)
 				printf("\n");
 			i++;
 		}
@@ -305,7 +305,7 @@ void display_list(slist list)
 	}
 	printf("%s\n", CNORMAL);
 }
-void display_pref_list(slist list)
+void display_pref_list(slist list, int modulo_display)
 {
 	int i = 1;
 	char c = 'A';
@@ -315,7 +315,7 @@ void display_pref_list(slist list)
 		if(p_server->pref == 1)
 		{
 			display_host(p_server, c, PREF_LIST);
-			if(i % OUT_COLUMNS == 0)
+			if(i % modulo_display == 0)
 				printf("\n");
 			i++;
 			c++;
@@ -569,7 +569,7 @@ int main(int argc, char **argv)
 {
 	slist list_server = NULL;
 	char* hostname = NULL;
-	int c, option_index = 0;
+	int c, option_index = 0, out_columns = OUT_COLUMNS;
 	char* ssh_config_file = NULL;
 	char* ssh_bin = NULL;
 
@@ -577,11 +577,12 @@ int main(int argc, char **argv)
 		{"bin", required_argument, 0, 'b'},
 		{"config", required_argument, 0, 'c'},
 		{"help", no_argument, 0, 'h'},
+		{"out-columns", required_argument, 0, 'o'},
 		{"version", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 
-	while((c = getopt_long(argc, argv, "b:c:hv", long_options, &option_index)) != -1)
+	while((c = getopt_long(argc, argv, "b:c:ho:v", long_options, &option_index)) != -1)
 	{
 		switch(c)
 		{
@@ -600,6 +601,9 @@ int main(int argc, char **argv)
 				printf("\t-h, --help\n\t\tDisplay help and exit\n");
 				printf("\t-v, --version\n\t\tOutput version information and exit\n");
 				exit(EXIT_FAILURE);
+			case 'o':
+				out_columns = atoi(optarg);
+				break;
 			case 'v':
 				printf("se %s\n", VERSION);
 				exit(EXIT_FAILURE);
@@ -620,9 +624,9 @@ int main(int argc, char **argv)
 
 	list_server = load_config(ssh_config_file);
 
-	display_list(list_server);
+	display_list(list_server, out_columns);
 	printf("\n");
-	display_pref_list(list_server);
+	display_pref_list(list_server, out_columns);
 
 	hostname = scan_input(list_server);
 	ssh(hostname, ssh_bin, ssh_config_file);

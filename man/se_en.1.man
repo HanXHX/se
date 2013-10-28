@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "se 1"
-.TH se 1 "2013-10-24" "1.0-git" ""
+.TH se 1 "2013-10-28" "1.0-git" ""
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -148,6 +148,9 @@ Use an alternate \s-1SSH\s0 config file (default: ~/.ssh/config)
 .IP "\fB\-h\fR, \fB\-\-help\fR" 4
 .IX Item "-h, --help"
 Display help and exit
+.IP "\fB\-o\fR, \fB\-\-out\-columns\fR" 4
+.IX Item "-o, --out-columns"
+Number of columns to display
 .IP "\fB\-v\fR, \fB\-\-version\fR" 4
 .IX Item "-v, --version"
 Output version information and exit

@@ -28,6 +28,10 @@ Use an alternate SSH config file (default: ~/.ssh/config)
 
 Display help and exit
 
+=item B<-o>, B<--out-columns>
+
+Number of columns to display
+
 =item B<-v>, B<--version>
 
 Output version information and exit
