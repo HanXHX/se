@@ -41,7 +41,7 @@ se(1) reads your SSH config file and check every line.
 Every line started by B<Host> is added in the list.
 ssh_config(5) accepts wildcards. se(1) exclude every lines with B<*>.
 
-Default hosts can be accessed by their id (digits) or by "AI". Exemple: foobar-01 can be accessed by B<f1> or B<fo1>...
+Default hosts can be accessed by their id (digits) or by "AI". Example: foobar-01 can be accessed by B<f1> or B<fo1>...
 
 Some "default hostname" can be excluded (see: I<Exclude hostname>).
 
@@ -61,7 +61,7 @@ You can exclude some "default hosts" in se(1). You can set with B<#EXCLUDE foo.b
 
 =head1 EXAMPLE
 
-Exemple of SSH config:
+Example of SSH config:
 	
 	Host linux-01
 	    User root
