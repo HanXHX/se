@@ -599,6 +599,7 @@ int main(int argc, char **argv)
 				printf("\t-b, --binary BINARY\n\t\tFull path to SSH binary (default: /usr/bin/ssh)\n");
 				printf("\t-c, --config config-file\n\t\tUse an alternate SSH config file (default: ~/.ssh/config)\n");
 				printf("\t-h, --help\n\t\tDisplay help and exit\n");
+				printf("\t-o, --out-columns number\n\t\tNumber of columns to display (default: 5)\n");
 				printf("\t-v, --version\n\t\tOutput version information and exit\n");
 				exit(EXIT_FAILURE);
 			case 'o':

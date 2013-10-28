@@ -28,9 +28,9 @@ Use an alternate SSH config file (default: ~/.ssh/config)
 
 Display help and exit
 
-=item B<-o>, B<--out-columns>
+=item B<-o>, B<--out-columns> I<NUMBER>
 
-Number of columns to display
+Number of columns to display (default: 5)
 
 =item B<-v>, B<--version>
 

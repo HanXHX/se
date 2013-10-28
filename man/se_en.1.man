@@ -148,9 +148,9 @@ Use an alternate \s-1SSH\s0 config file (default: ~/.ssh/config)
 .IP "\fB\-h\fR, \fB\-\-help\fR" 4
 .IX Item "-h, --help"
 Display help and exit
-.IP "\fB\-o\fR, \fB\-\-out\-columns\fR" 4
-.IX Item "-o, --out-columns"
-Number of columns to display
+.IP "\fB\-o\fR, \fB\-\-out\-columns\fR \fI\s-1NUMBER\s0\fR" 4
+.IX Item "-o, --out-columns NUMBER"
+Number of columns to display (default: 5)
 .IP "\fB\-v\fR, \fB\-\-version\fR" 4
 .IX Item "-v, --version"
 Output version information and exit
