@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-se - Fast connection to SSH configugration file
+se - Fast connection to SSH configuration file
 
 =head1 SYNOPSIS
 
