@@ -1,5 +1,6 @@
 CC=/usr/bin/gcc
-CONSTANTS = -DDEBUG
+VERSION = $(shell cat VERSION)
+CONSTANTS = -DDEBUG -DVERSION='"$(VERSION)"'
 L =
 
 UNAME=$(shell uname)

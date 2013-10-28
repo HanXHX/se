@@ -23,7 +23,6 @@
 #include <bsd/string.h>
 #endif
 
-#define VERSION "1.0-git"
 #define OUT_COLUMNS 5
 #define NORMAL_LIST 0
 #define PREF_LIST 1
