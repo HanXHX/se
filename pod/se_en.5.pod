@@ -88,5 +88,5 @@ se(1) was writen by Emilien Mantel <S<emilien.mantel@debianiste.org>>
 
 =head1 SEE ALSO
 
-Other man pages to check out, like se(1), ssh(7), ssh_config(5).
+se(1), ssh(1), ssh_config(5)
 
