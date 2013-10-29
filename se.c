@@ -256,22 +256,18 @@ slist load_config(const char* ssh_config_file)
 
 void display_host(server* s, int number, const int show_type)
 {
-	char* new_hostname = NULL;
 	int i = 0;
+	char* new_hostname = strdup(s->hostname);
 
-	if( NULL == (new_hostname = alloca(sizeof(s->hostname)) ) )
-		ALLOC_FAILURE();
-
-	while((char) s->hostname[i] != '\0')
+	while((char) new_hostname[i] != '\0')
 	{
-		if ((char) s->hostname[i] == '.')
+		if((char) new_hostname[i] == '.')
 		{
+			new_hostname[i] = '\0';
 			break;
 		}
-		new_hostname[i] = s->hostname[i];
 		i++;
 	}
-	new_hostname[i] = '\0';
 
 	switch(show_type)
 	{
@@ -285,6 +281,8 @@ void display_host(server* s, int number, const int show_type)
 			fprintf(stderr, "W00t\n");
 			exit(EXIT_FAILURE);
 	}
+
+	FREE(new_hostname);
 }
 
 void display_list(slist list, int modulo_display)
