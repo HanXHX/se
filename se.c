@@ -606,7 +606,7 @@ int main(int argc, char **argv)
 				printf("se %s\n", VERSION);
 				exit(EXIT_FAILURE);
 			default:
-				abort();
+				exit(EXIT_FAILURE);
 		}
 	}
 
