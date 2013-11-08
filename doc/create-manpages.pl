@@ -4,10 +4,9 @@ use strict;
 use warnings;
 
 use feature qw/say/;
+use File::Path qw/make_path/;
 
-use constant {
-	'VERSION_FILE' => '../VERSION'
-};
+use constant 'VERSION_FILE' => '../VERSION';
 
 open('VERSION', '<', VERSION_FILE) or die('Can\'t open ' . VERSION_FILE);
 my $release = <VERSION>;
@@ -24,7 +23,7 @@ foreach my $file (glob('pod/*.pod'))
 		$locale ne 'en' ? $locale . '/' : '', $section
 	);
 
-	mkdir($outfolder) or die("Cant't mkdir $outfolder");
+	make_path($outfolder) or die("Cant't mkdir $outfolder");
 
 	my $outfile = sprintf(
 		'%s/se.%d',
