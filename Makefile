@@ -1,4 +1,5 @@
 CC=/usr/bin/gcc
+MAKE=/usr/bin/make
 VERSION = $(shell cat VERSION)
 CONSTANTS = -DDEBUG -DVERSION='"$(VERSION)"'
 L =
@@ -8,8 +9,16 @@ ifeq ($(UNAME), Linux)
 	L = -lbsd
 endif
 
-all:
-	$(CC) se.c -O3 -Wall -Werror $(CONSTANTS) $(L) -o se
+all: documentation bin 
+
+documentation:
+	@$(MAKE) -C doc all
+
+bin:
+	@echo 'Compiling...'
+	@$(CC) se.c -O3 -Wall -Werror $(CONSTANTS) $(L) -o se
+	@echo 'Done...'
 
 clean:
-	rm -f se 
+	@rm -f se 
+	@$(MAKE) -C doc clean 
