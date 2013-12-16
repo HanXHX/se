@@ -1,0 +1,10 @@
+se (1.0~dev-1~1.gbpc66d34) UNRELEASED; urgency=low
+
+  ** SNAPSHOT build @c66d345553872697166ff910c8b3e7c559e6ed73 **
+
+  [ Emilien Mantel ]
+  * Initial release
+
+  [ hanx ]
+
+ -- Emilien Mantel <emilien.mantel@debianiste.org>  Mon, 16 Dec 2013 09:37:47 +0100
