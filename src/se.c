@@ -294,13 +294,14 @@ void display_list(slist list, int modulo_display)
 		if(p_server->def == 1 || p_server->my == 1)
 		{
 			display_host(p_server, i, NORMAL_LIST);
-			if(i % modulo_display == 0)
+			if(i % modulo_display == 0 && p_server->next != NULL)
 				printf("\n");
 			i++;
 		}
 		p_server = p_server->next;
 	}
-	printf("%s\n", CNORMAL);
+	if(i > 1)
+		printf("%s\n", CNORMAL);
 }
 void display_pref_list(slist list, int modulo_display)
 {
@@ -312,14 +313,15 @@ void display_pref_list(slist list, int modulo_display)
 		if(p_server->pref == 1)
 		{
 			display_host(p_server, c, PREF_LIST);
-			if(i % modulo_display == 0)
+			if(i % modulo_display == 0 && p_server->next != NULL)
 				printf("\n");
 			i++;
 			c++;
 		}
 		p_server = p_server->next;
 	}
-	printf("%s\n", CNORMAL);
+	if(i > 1)
+		printf("%s\n", CNORMAL);
 }
 
 void free_list(slist list)
@@ -623,7 +625,6 @@ int main(int argc, char **argv)
 	list_server = load_config(ssh_config_file);
 
 	display_list(list_server, out_columns);
-	printf("\n");
 	display_pref_list(list_server, out_columns);
 
 	hostname = scan_input(list_server);
