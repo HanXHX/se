@@ -82,7 +82,7 @@ char* extract_hostname(char* hostname)
 	}
 
 	idx++; // skip '@'
-	if( NULL ==  (tmp_hostname = malloc(sizeof(char) * 64)))
+	if( NULL ==  (tmp_hostname = calloc(64, sizeof(char))))
 		ALLOC_FAILURE();
 	
 	while(*idx != '\0')
@@ -196,6 +196,8 @@ slist load_config(const char* ssh_config_file)
 
 	if(NULL == (hostname = alloca(sizeof(char) * MAX_LENGTH_STRING)))
 		ALLOC_FAILURE();
+
+	memset(hostname, '\0', sizeof(char) * MAX_LENGTH_STRING);
 
 	if(NULL == (fp = fopen(ssh_config_file, "r")))
 	{
@@ -366,7 +368,7 @@ char* ia_get_server(slist list, char* input)
 		p_char++;
 	}
 
-	if(NULL == (p_ss = malloc(sizeof(score_server) * MAX_SS)) )
+	if(NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
 		ALLOC_FAILURE();
 
 	// Check if root 
@@ -438,7 +440,7 @@ char* ia_get_server(slist list, char* input)
 
 	if(is_root == 1)
 	{
-		tmp = malloc(strlen(ss.hostname) * sizeof(char) + (sizeof(char) * 6));
+		tmp = calloc(strlen(ss.hostname) + 6, sizeof(char));
 		strcpy(tmp, "root@");
 		strlcat(tmp, ss.hostname, strlen(ss.hostname) + 6);
 		FREE(ss.hostname);
@@ -454,7 +456,7 @@ char* scan_input(slist list)
 	slist p = list;
 	int server_id = 0, id = 1;
 
-	if( NULL == (input = malloc( sizeof(char) * 4) )) 
+	if( NULL == (input = calloc(4, sizeof(char)))) 
 		ALLOC_FAILURE();
 
 	while(scanf("%4s", input) == 0);
@@ -614,7 +616,7 @@ int main(int argc, char **argv)
 
 	if(ssh_config_file == NULL)
 	{
-		if(NULL == (ssh_config_file = malloc(sizeof(char) * MAX_LENGTH_STRING)))
+		if(NULL == (ssh_config_file = calloc(MAX_LENGTH_STRING, sizeof(char))))
 			ALLOC_FAILURE();
 		snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING, "%s/.ssh/config", getenv("HOME"));
 	}
