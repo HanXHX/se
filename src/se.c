@@ -32,6 +32,7 @@
 #define SSH_BIN "/usr/bin/ssh"
 #define TERMINAL_DEFAULT_TITLE "Terminal"
 #define MAX_PREF_LETTER 26
+#define HOSTNAME_LENGTH 24
 
 /* Colors :) */
 #define WHITE "\033[0m"
@@ -68,6 +69,8 @@ typedef struct server {
 } server;
 
 typedef server* slist;
+short split_domain = 0;
+short hostname_length = HOSTNAME_LENGTH;
 
 char* extract_hostname(char* hostname)
 {
@@ -261,23 +264,26 @@ void display_host(server* s, int number, const int show_type)
 	int i = 0;
 	char* new_hostname = strdup(s->hostname);
 
-	while((char) new_hostname[i] != '\0')
+	if(split_domain == 1)
 	{
-		if((char) new_hostname[i] == '.')
+		while((char) new_hostname[i] != '\0')
 		{
-			new_hostname[i] = '\0';
-			break;
+			if((char) new_hostname[i] == '.')
+			{
+				new_hostname[i] = '\0';
+				break;
+			}
+			i++;
 		}
-		i++;
 	}
 
 	switch(show_type)
 	{
 		case NORMAL_LIST:
-			printf("%s%5d) %-16.16s", s->my == 1 ? COLOR__SPECIAL_HOST : COLOR__DEFAULT, number, new_hostname);
+			printf("%s%5d) %-*.*s", s->my == 1 ? COLOR__SPECIAL_HOST : COLOR__DEFAULT, number, hostname_length, hostname_length, new_hostname);
 			break;
 		case PREF_LIST:
-			printf("%s%5s) %-16.16s", COLOR__PREFERED_SERVERS, (char*) &number, new_hostname);
+			printf("%s%5s) %-*.*s", COLOR__PREFERED_SERVERS, (char*) &number, hostname_length, hostname_length, new_hostname);
 			break;
 		default:
 			fprintf(stderr, "W00t\n");
@@ -579,11 +585,13 @@ int main(int argc, char **argv)
 		{"config", required_argument, 0, 'c'},
 		{"help", no_argument, 0, 'h'},
 		{"out-columns", required_argument, 0, 'o'},
+		{"hostname-length", required_argument, 0, 'o'},
+		{"split-name", required_argument, 0, 's'},
 		{"version", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 
-	while((c = getopt_long(argc, argv, "b:c:ho:v", long_options, &option_index)) != -1)
+	while((c = getopt_long(argc, argv, "b:c:ho:l:sv", long_options, &option_index)) != -1)
 	{
 		switch(c)
 		{
@@ -600,11 +608,19 @@ int main(int argc, char **argv)
 				printf("\t-b, --binary BINARY\n\t\tFull path to SSH binary (default: /usr/bin/ssh)\n");
 				printf("\t-c, --config config-file\n\t\tUse an alternate SSH config file (default: ~/.ssh/config)\n");
 				printf("\t-h, --help\n\t\tDisplay help and exit\n");
+				printf("\t-l, --hostname-length\n\t\tHostname length\n");
 				printf("\t-o, --out-columns number\n\t\tNumber of columns to display (default: 5)\n");
+				printf("\t-s, --split-name\n\t\tsplit domain (myhost.domain.tld -> myhost)\n");
 				printf("\t-v, --version\n\t\tOutput version information and exit\n");
 				exit(EXIT_FAILURE);
+			case 'l':
+				hostname_length = atoi(optarg);
+				break;
 			case 'o':
 				out_columns = atoi(optarg);
+				break;
+			case 's':
+				split_domain = 1;
 				break;
 			case 'v':
 				printf("se %s\n", VERSION);
