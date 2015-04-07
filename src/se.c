@@ -67,29 +67,18 @@ short hostname_length = HOSTNAME_LENGTH;
 
 char* extract_hostname(char* hostname)
 {
-	short i = 0;
 	char* idx = NULL;
 	char* tmp_hostname = NULL;
 
 	if(NULL == (idx = strchr(hostname, '@')))
 	{
 		tmp_hostname = strdup(hostname);
-		return tmp_hostname;
+	}
+	else
+	{
+		tmp_hostname = strdup(++idx);
 	}
 
-	idx++; // skip '@'
-	if( NULL ==  (tmp_hostname = calloc(64, sizeof(char))))
-		ALLOC_FAILURE();
-	
-	while(*idx != '\0')
-	{
-		if(*idx == '.')
-			break;
-		tmp_hostname[i] = *idx;
-		idx++;
-		i++;
-	}
-	tmp_hostname[i] = '\0';
 	return tmp_hostname;
 }
 
