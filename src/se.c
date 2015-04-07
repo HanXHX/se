@@ -50,15 +50,8 @@
 /*
  * Internal Macros
  */
-#ifdef DEBUG
-#define FREE(pointer) do { if(pointer) { free(pointer); pointer = NULL; } else { fprintf(stderr, "FREE error on line %d\n", __LINE__);  }} while(0)
-#else
-#define FREE(pointer) do { if(pointer) { free(pointer); pointer = NULL; } } while(0)
-#endif
-
 #define ALLOC_FAILURE() do { fprintf(stderr, "Can't allocate memory on line %d!\n", __LINE__); exit(EXIT_FAILURE); } while(0)
 #define HOP() do { printf("HOP! %d \n", __LINE__); } while(0)
-
 
 typedef struct server {
 	char* hostname;
@@ -110,8 +103,8 @@ slist pop_list_server(slist list, char* hostname)
 	if(strcmp(list->hostname, hostname) == 0)
 	{
 		p_tmp = list->next;
-		FREE(list->hostname);
-		FREE(list);
+		free(list->hostname);
+		free(list);
 		p_tmp = pop_list_server(p_tmp, hostname);
 		return p_tmp;
 	}
@@ -155,8 +148,8 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 		ch1 = extract_hostname(hostname);
 		ch2 = extract_hostname(csl->hostname);
 		cmp = strcmp(ch1, ch2);
-		FREE(ch1);
-		FREE(ch2);
+		free(ch1);
+		free(ch2);
 
 		if(cmp < 0)
 			break;
@@ -246,7 +239,7 @@ slist load_config(const char* ssh_config_file)
 			list = pop_list_server(list, hostname);
 		}
 	}
-	FREE(line);
+	free(line);
 	fclose(fp);
 
 	if(list == NULL)
@@ -290,7 +283,7 @@ void display_host(server* s, int number, const int show_type)
 			exit(EXIT_FAILURE);
 	}
 
-	FREE(new_hostname);
+	free(new_hostname);
 }
 
 void display_list(slist list, int modulo_display)
@@ -338,8 +331,8 @@ void free_list(slist list)
 	while(list != NULL)
 	{
 		tmp = list->next;
-		FREE(list->hostname);
-		FREE(list);
+		free(list->hostname);
+		free(list);
 		list = tmp;
 	}
 }
@@ -369,7 +362,7 @@ char* ia_get_server(slist list, char* input)
 		{
 			tmp = strndup(p_char, sizeof(char));
 			strlcat(server_num, tmp, sizeof(server_num));
-			FREE(tmp);
+			free(tmp);
 		}
 		p_char++;
 	}
@@ -441,7 +434,7 @@ char* ia_get_server(slist list, char* input)
 		if(ss.score < p_ss[i].score)
 			ss = p_ss[i];
 	}
-	FREE(p_ss);
+	free(p_ss);
 
 
 	if(is_root == 1)
@@ -449,7 +442,7 @@ char* ia_get_server(slist list, char* input)
 		tmp = calloc(strlen(ss.hostname) + 6, sizeof(char));
 		strcpy(tmp, "root@");
 		strlcat(tmp, ss.hostname, strlen(ss.hostname) + 6);
-		FREE(ss.hostname);
+		free(ss.hostname);
 		return tmp;
 	}
 
@@ -513,7 +506,7 @@ char* scan_input(slist list)
 
 	if(tmp_hostname != NULL)
 	{
-		FREE(input);
+		free(input);
 		return tmp_hostname;
 	}
 
@@ -566,7 +559,7 @@ void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 	wait(NULL);
 
 	for(j = 0; j < i; j++)
-		FREE(command_arg[j]);
+		free(command_arg[j]);
 	
 	terminal_title(TERMINAL_DEFAULT_TITLE);
 }
@@ -649,9 +642,9 @@ int main(int argc, char **argv)
 	ssh(hostname, ssh_bin, ssh_config_file);
 
 	// Valgrind loves me :)
-	FREE(hostname);
-	FREE(ssh_config_file);
-	FREE(ssh_bin);
+	free(hostname);
+	free(ssh_config_file);
+	free(ssh_bin);
 	free_list(list_server);
 
 	return 0;
