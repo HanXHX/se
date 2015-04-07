@@ -190,10 +190,8 @@ slist load_config(const char* ssh_config_file)
 	}
 
 
-	if(NULL == (hostname = alloca(sizeof(char) * MAX_LENGTH_STRING)))
+	if(NULL == (hostname = calloc(MAX_LENGTH_STRING, sizeof(char))))
 		ALLOC_FAILURE();
-
-	memset(hostname, '\0', sizeof(char) * MAX_LENGTH_STRING);
 
 	if(NULL == (fp = fopen(ssh_config_file, "r")))
 	{
@@ -240,6 +238,7 @@ slist load_config(const char* ssh_config_file)
 		}
 	}
 	free(line);
+	free(hostname);
 	fclose(fp);
 
 	if(list == NULL)
