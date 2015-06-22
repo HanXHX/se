@@ -7,7 +7,7 @@
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
 %:
 	dh $@ 
@@ -18,13 +18,3 @@ clean:
 	dh_clean
 	rm -f $(CURDIR)/debian/substvars
 
-binary: install
-	dh binary
-
-install: build
-	dh_testroot
-	dh_testdir
-	dh_shlibdeps -- -e $(CURDIR)/se
-	dh_installman
-	dh_installdirs
-	dh install --sourcedir=$(CURDIR)
