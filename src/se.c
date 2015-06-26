@@ -6,7 +6,7 @@
  * @website: http://www.debianiste.org
  * @github: https://github.com/HanXHX
  *
- */ 
+ */
 
 
 #include <stdio.h>
@@ -27,7 +27,7 @@
 #define NORMAL_LIST 0
 #define PREF_LIST 1
 #define COLOR__DEFAULT CYAN
-#define COLOR__SPECIAL_HOST PURPLE 
+#define COLOR__SPECIAL_HOST PURPLE
 #define COLOR__PREFERED_SERVERS ORANGE
 #define SSH_BIN "/usr/bin/ssh"
 #define TERMINAL_DEFAULT_TITLE "Terminal"
@@ -112,7 +112,7 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 	server* csl = list;
 	server* tmp = NULL;
 
-	char* ch1 = NULL; 
+	char* ch1 = NULL;
 	char* ch2 = NULL;
 
 	if(NULL == (element = malloc(sizeof(server))))
@@ -131,7 +131,7 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 		return element;
 	}
 
-	// loop list 
+	// loop list
 	while(csl != NULL)
 	{
 		ch1 = extract_hostname(hostname);
@@ -202,7 +202,7 @@ slist load_config(const char* ssh_config_file)
 
 		if(sscanf(line, "Host %s", hostname) == 1 && strcmp("*", hostname) != 0)
 		{
-			list = push_list_server(list, hostname, 1, 0, 0); 
+			list = push_list_server(list, hostname, 1, 0, 0);
 		}
 		else if(sscanf(line, "#MYHOST %s", hostname) == 1)
 		{
@@ -358,12 +358,12 @@ char* ia_get_server(slist list, char* input)
 	if(NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
 		ALLOC_FAILURE();
 
-	// Check if root 
+	// Check if root
 	for(i = 0; i < (int) (sizeof(root_special_chars) / sizeof(char)); i++)
 	{
 		if(input[0] == root_special_chars[i])
 		{
-			is_root = 1;	
+			is_root = 1;
 			id_char++;
 			break;
 		}
@@ -384,7 +384,7 @@ char* ia_get_server(slist list, char* input)
 		if(is_root)
 			id_char2++;
 
-		//TODO : I can code better :) 
+		//TODO : I can code better :)
 		if(input[id_char2] == p_list->hostname[id_char]) // first letter OK
 		{
 			if(NULL != strstr(p_list->hostname, server_num )) // we have the good number
@@ -443,7 +443,7 @@ char* scan_input(slist list)
 	slist p = list;
 	int server_id = 0, id = 1;
 
-	if( NULL == (input = calloc(4, sizeof(char)))) 
+	if( NULL == (input = calloc(4, sizeof(char))))
 		ALLOC_FAILURE();
 
 	while(scanf("%4s", input) == 0);
@@ -463,7 +463,7 @@ char* scan_input(slist list)
 				id++;
 			}
 			p = p->next;
-		}	
+		}
 	}
 	// case 1 letter
 	else if(strlen(input) == 1 && sscanf(input, "%1c", (char*) &server_id ) == 1)
@@ -521,7 +521,7 @@ void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 	command_arg[i++] = strdup("-F");
 	command_arg[i++] = strdup(ssh_config_file);
 	command_arg[i++] = strdup(hostname);
-	command_arg[i] = NULL; 
+	command_arg[i] = NULL;
 
 	strlcat(terminal, "ssh://", sizeof(terminal));
 	strlcat(terminal, hostname, sizeof(terminal));
@@ -548,7 +548,7 @@ void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 
 	for(j = 0; j < i; j++)
 		free(command_arg[j]);
-	
+
 	terminal_title(TERMINAL_DEFAULT_TITLE);
 }
 
