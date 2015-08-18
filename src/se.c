@@ -527,6 +527,10 @@ void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 	strlcat(terminal, hostname, sizeof(terminal));
 	terminal_title(terminal);
 
+	printf("--------------------------------------\n");
+	printf("Connecting to %s%s%s\n", ORANGE, hostname, CNORMAL);
+	printf("--------------------------------------\n\n");
+
 	child_pid = fork();
 	if(child_pid < 0)
 	{
