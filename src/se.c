@@ -443,10 +443,10 @@ char* scan_input(slist list)
 	slist p = list;
 	int server_id = 0, id = 1;
 
-	if( NULL == (input = calloc(4, sizeof(char))))
+	if( NULL == (input = calloc(255, sizeof(char))))
 		ALLOC_FAILURE();
 
-	while(scanf("%4s", input) == 0);
+	while(scanf("%255s", input) == 0);
 
 	// case digit
 	if(sscanf(input, "%d", (int*) &server_id ) == 1)
