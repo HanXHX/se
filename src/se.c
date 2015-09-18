@@ -387,7 +387,7 @@ char* ia_get_server(slist list, char* input)
 		//TODO : I can code better :)
 		if(input[id_char2] == p_list->hostname[id_char]) // first letter OK
 		{
-			if(NULL != strstr(p_list->hostname, server_num )) // we have the good number
+			if(NULL != strstr(p_list->hostname, server_num)) // we have the good number
 			{
 				ss.hostname = strdup(p_list->hostname);
 				ss.score++;
@@ -443,13 +443,13 @@ char* scan_input(slist list)
 	slist p = list;
 	int server_id = 0, id = 1;
 
-	if( NULL == (input = calloc(255, sizeof(char))))
+	if(NULL == (input = calloc(255, sizeof(char))))
 		ALLOC_FAILURE();
 
 	while(scanf("%255s", input) == 0);
 
 	// case digit
-	if(sscanf(input, "%d", (int*) &server_id ) == 1)
+	if(sscanf(input, "%d", (int*) &server_id) == 1)
 	{
 		while(p != NULL)
 		{
@@ -466,9 +466,9 @@ char* scan_input(slist list)
 		}
 	}
 	// case 1 letter
-	else if(strlen(input) == 1 && sscanf(input, "%1c", (char*) &server_id ) == 1)
+	else if(strlen(input) == 1 && sscanf(input, "%1c", (char*) &server_id) == 1)
 	{
-		if((input[0] >= 'a' && input[0] <= 'z' ) || (input[0] >= 'A' && input[0] <= 'Z'))
+		if((input[0] >= 'a' && input[0] <= 'z') || (input[0] >= 'A' && input[0] <= 'Z'))
 		{
 			id = 'a';
 			while(p != NULL)
