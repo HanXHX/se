@@ -437,16 +437,11 @@ char* ia_get_server(slist list, char* input)
 	return ss.hostname;
 }
 
-char* scan_input(slist list)
+char* scan_input(slist list, char* input)
 {
-	char *input = NULL, *tmp_hostname = NULL;
+	char *tmp_hostname = NULL;
 	slist p = list;
 	int server_id = 0, id = 1;
-
-	if(NULL == (input = calloc(255, sizeof(char))))
-		ALLOC_FAILURE();
-
-	while(scanf("%255s", input) == 0);
 
 	// case digit
 	if(sscanf(input, "%d", (int*) &server_id) == 1)
@@ -494,7 +489,6 @@ char* scan_input(slist list)
 
 	if(tmp_hostname != NULL)
 	{
-		free(input);
 		return tmp_hostname;
 	}
 
@@ -561,6 +555,7 @@ int main(int argc, char **argv)
 {
 	slist list_server = NULL;
 	char* hostname = NULL;
+	char* input = NULL;
 	int c, option_index = 0, out_columns = OUT_COLUMNS;
 	char* ssh_config_file = NULL;
 	char* ssh_bin = NULL;
@@ -630,7 +625,21 @@ int main(int argc, char **argv)
 	display_list(list_server, out_columns);
 	display_pref_list(list_server, out_columns);
 
-	hostname = scan_input(list_server);
+	if(NULL == (input = calloc(255, sizeof(char))))
+		ALLOC_FAILURE();
+
+	printf(">>>> %d\n", argc);
+	if(argc > 1)
+	{
+		input = argv[argc - 1];
+		printf(">>>> %s\n", input);
+	}
+	else
+	{
+		while(scanf("%255s", input) == 0);
+	}
+
+	hostname = scan_input(list_server, input);
 	ssh(hostname, ssh_bin, ssh_config_file);
 
 	// Valgrind loves me :)
