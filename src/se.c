@@ -628,11 +628,9 @@ int main(int argc, char **argv)
 	if(NULL == (input = calloc(255, sizeof(char))))
 		ALLOC_FAILURE();
 
-	printf(">>>> %d\n", argc);
 	if(argc > 1)
 	{
 		input = argv[argc - 1];
-		printf(">>>> %s\n", input);
 	}
 	else
 	{
