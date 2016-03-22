@@ -622,9 +622,6 @@ int main(int argc, char **argv)
 
 	list_server = load_config(ssh_config_file);
 
-	display_list(list_server, out_columns);
-	display_pref_list(list_server, out_columns);
-
 	if(NULL == (input = calloc(255, sizeof(char))))
 		ALLOC_FAILURE();
 
@@ -635,6 +632,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		display_list(list_server, out_columns);
+		display_pref_list(list_server, out_columns);
 		while(scanf("%255s", input) == 0);
 	}
 
