@@ -628,7 +628,8 @@ int main(int argc, char **argv)
 	if(NULL == (input = calloc(255, sizeof(char))))
 		ALLOC_FAILURE();
 
-	if(argc > 1)
+	/* Check extra param: hostname pattern */
+	if(argv[optind] != NULL)
 	{
 		input = argv[argc - 1];
 	}
