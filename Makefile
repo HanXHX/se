@@ -17,4 +17,4 @@ clean:
 	@rm -rf $(export_dir)
 
 deb: clean documentation bin
-	@git-buildpackage --git-ignore-new --git-export-dir=$(export_dir) --git-upstream-tree=master --git-dist=unstable --git-builder=$(git_builder)
+	@gbp buildpackage --git-ignore-new --git-export-dir=$(export_dir) --git-upstream-tree=master --git-dist=unstable --git-builder=$(git_builder)
