@@ -385,7 +385,7 @@ char* ia_get_server(slist list, char* input)
 			id_char2++;
 
 		//TODO : I can code better :)
-		if(input[id_char2] == p_list->hostname[id_char]) // first letter OK
+		if(strncasecmp(input, p_list->hostname, 1) == 0) // first letter OK
 		{
 			if(NULL != strstr(p_list->hostname, server_num)) // we have the good number
 			{
