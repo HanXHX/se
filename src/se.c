@@ -333,11 +333,10 @@ char* ia_get_server(slist list, char* input)
 		unsigned short score;
 	} score_server;
 	slist p_list = list;
-	int i = 0, j = 0, is_root = 0, id_char = 0, id_char2 = 0;
+	int i = 0, j = 0, id_char = 0;
 	char* p_char = NULL;
 	char* tmp = NULL;
 	char server_num[4] = "";
-	const char root_special_chars[] = { '-', ',', ';', ':', '!', '/', '*', '+' };
 
 	score_server* p_ss = NULL;
 	score_server ss;
@@ -358,17 +357,6 @@ char* ia_get_server(slist list, char* input)
 	if(NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
 		ALLOC_FAILURE();
 
-	// Check if root
-	for(i = 0; i < (int) (sizeof(root_special_chars) / sizeof(char)); i++)
-	{
-		if(input[0] == root_special_chars[i])
-		{
-			is_root = 1;
-			id_char++;
-			break;
-		}
-	}
-
 	while(p_list != NULL)
 	{
 		if(p_list->def == 0)
@@ -378,31 +366,20 @@ char* ia_get_server(slist list, char* input)
 		}
 
 		ss.score = 0;
-		id_char = 0;
-		id_char2 = 0;
+		id_char = 1;
 
-		if(is_root)
-			id_char2++;
-
-		//TODO : I can code better :)
-		if(strncasecmp(input, p_list->hostname, 1) == 0) // first letter OK
+		// First letter OK && we have the good number
+		if(strncasecmp(input, p_list->hostname, 1) == 0 && NULL != strstr(p_list->hostname, server_num))
 		{
-			if(NULL != strstr(p_list->hostname, server_num)) // we have the good number
+			ss.hostname = strdup(p_list->hostname);
+			ss.score++;
+			while(input[id_char++] != '\0')
 			{
-				ss.hostname = strdup(p_list->hostname);
-				ss.score++;
-				while(input[id_char2] != '\0')
-				{
-					if(input[id_char2] == p_list->hostname[id_char])
-					{
-						ss.score++;
-					}
-					id_char++;
-					id_char2++;
-				}
-				p_ss[j] = ss;
-				j++;
+				if(strncasecmp(&input[id_char], &p_list->hostname[id_char], 1) == 0)
+					ss.score++;
 			}
+			p_ss[j] = ss;
+			j++;
 		}
 		p_list = p_list->next;
 	}
@@ -423,16 +400,6 @@ char* ia_get_server(slist list, char* input)
 			ss = p_ss[i];
 	}
 	free(p_ss);
-
-
-	if(is_root == 1)
-	{
-		tmp = calloc(strlen(ss.hostname) + 6, sizeof(char));
-		strcpy(tmp, "root@");
-		strlcat(tmp, ss.hostname, strlen(ss.hostname) + 6);
-		free(ss.hostname);
-		return tmp;
-	}
 
 	return ss.hostname;
 }
