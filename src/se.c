@@ -297,7 +297,7 @@ void display_pref_list(slist list, int modulo_display)
 	int i = 1;
 	char c = 'A';
 	slist p_server = list;
-	while(p_server != NULL)
+	while(p_server != NULL || c >= 'Z')
 	{
 		if(p_server->pref == 1)
 		{
