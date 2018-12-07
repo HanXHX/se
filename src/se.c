@@ -8,7 +8,6 @@
  *
  */
 
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -46,7 +45,6 @@
 #define GREY "\033[37m"
 #define CNORMAL "\x1B[0m"
 
-
 /*
  * Internal Macros
  */
@@ -54,68 +52,62 @@
 #define HOP() do { printf("HOP! %d \n", __LINE__); } while(0)
 
 typedef struct server {
-	char* hostname;
+	char *hostname;
 	short def;
 	short my;
 	short pref;
-	struct server* next;
+	struct server *next;
 } server;
 
-typedef server* slist;
+typedef server *slist;
 short split_domain = 0;
 short hostname_length = HOSTNAME_LENGTH;
 
-char* extract_hostname(char* hostname)
+char *extract_hostname(char *hostname)
 {
-	char* idx = NULL;
-	char* tmp_hostname = NULL;
+	char *idx = NULL;
+	char *tmp_hostname = NULL;
 
-	if(NULL == (idx = strchr(hostname, '@')))
-	{
+	if (NULL == (idx = strchr(hostname, '@'))) {
 		tmp_hostname = strdup(hostname);
-	}
-	else
-	{
+	} else {
 		tmp_hostname = strdup(++idx);
 	}
 
 	return tmp_hostname;
 }
 
-slist pop_list_server(slist list, char* hostname)
+slist pop_list_server(slist list, char *hostname)
 {
-	server* p_tmp = NULL;
+	server *p_tmp = NULL;
 
-	if(list == NULL)
+	if (list == NULL)
 		return NULL;
 
-	if(strcmp(list->hostname, hostname) == 0)
-	{
+	if (strcmp(list->hostname, hostname) == 0) {
 		p_tmp = list->next;
 		free(list->hostname);
 		free(list);
 		p_tmp = pop_list_server(p_tmp, hostname);
 		return p_tmp;
-	}
-	else
-	{
+	} else {
 		list->next = pop_list_server(list->next, hostname);
 		return list;
 	}
 }
 
-
-slist push_list_server(slist list, char* hostname, short def, short pref, short my)
+slist push_list_server(slist list, char *hostname, short def, short pref,
+		       short my)
 {
 	int cmp;
-	server* element = NULL;
-	server* csl = list;
-	server* tmp = NULL;
+	server *element = NULL;
+	server *csl = list;
+	server *tmp = NULL;
 
-	char* ch1 = NULL;
-	char* ch2 = NULL;
+	char *ch1 = NULL;
+	char *ch2 = NULL;
 
-	if(NULL == (element = malloc(sizeof(server))))
+	if (NULL == (element = malloc(sizeof(server))))
 		ALLOC_FAILURE();
 
 	element->hostname = strdup(hostname);
@@ -124,23 +116,19 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 	element->my = my;
 	element->next = NULL;
 
-
 	// No element in list, we return the new one
-	if(list == NULL)
-	{
+	if (list == NULL) {
 		return element;
 	}
-
 	// loop list
-	while(csl != NULL)
-	{
+	while (csl != NULL) {
 		ch1 = extract_hostname(hostname);
 		ch2 = extract_hostname(csl->hostname);
 		cmp = strcmp(ch1, ch2);
 		free(ch1);
 		free(ch2);
 
-		if(cmp < 0)
+		if (cmp < 0)
 			break;
 		tmp = csl;
 		csl = csl->next;
@@ -148,13 +136,10 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 
 	element->next = csl;
 
-	if(tmp)
-	{
+	if (tmp) {
 		// Insert next
 		tmp->next = element;
-	}
-	else
-	{
+	} else {
 		// Head insert
 		list = element;
 	}
@@ -162,67 +147,56 @@ slist push_list_server(slist list, char* hostname, short def, short pref, short 
 }
 
 #define MAX_LENGTH_STRING 128
-slist load_config(const char* ssh_config_file)
+slist load_config(const char *ssh_config_file)
 {
 	slist list = NULL;
-	char* hostname = NULL;
+	char *hostname = NULL;
 	FILE *fp = NULL;
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t read;
 	short max_pref = 0;
 
-	if(getenv("HOME") == NULL)
-	{
+	if (getenv("HOME") == NULL) {
 		fprintf(stderr, "Error! Can't get *HOME* environment var...\n");
 		exit(EXIT_FAILURE);
 	}
 
-
-	if(NULL == (hostname = calloc(MAX_LENGTH_STRING, sizeof(char))))
+	if (NULL == (hostname = calloc(MAX_LENGTH_STRING, sizeof(char))))
 		ALLOC_FAILURE();
 
-	if(NULL == (fp = fopen(ssh_config_file, "r")))
-	{
+	if (NULL == (fp = fopen(ssh_config_file, "r"))) {
 		fprintf(stderr, "Can't open file: %s\n", ssh_config_file);
 		exit(EXIT_FAILURE);
 	}
 
-	while((read = getline(&line, &len, fp)) != -1)
-	{
+	while ((read = getline(&line, &len, fp)) != -1) {
 		// Dirty optimization :D
-		if(read < 5)
+		if (read < 5)
 			continue;
 
-		if(read > 128)
-		{
-			fprintf(stderr, "Big config line size! %d read...\n", (int) read);
+		if (read > 128) {
+			fprintf(stderr, "Big config line size! %d read...\n",
+				(int)read);
 			exit(EXIT_FAILURE);
 		}
 
-		if(sscanf(line, "Host %s", hostname) == 1 && strcmp("*", hostname) != 0)
-		{
+		if (sscanf(line, "Host %s", hostname) == 1
+		    && strcmp("*", hostname) != 0) {
 			list = push_list_server(list, hostname, 1, 0, 0);
-		}
-		else if(sscanf(line, "#MYHOST %s", hostname) == 1)
-		{
+		} else if (sscanf(line, "#MYHOST %s", hostname) == 1) {
 			list = push_list_server(list, hostname, 0, 0, 1);
-		}
-		else if(sscanf(line, "#PREFHOST %s", hostname) == 1)
-		{
-			if(max_pref < MAX_PREF_LETTER)
-			{
+		} else if (sscanf(line, "#PREFHOST %s", hostname) == 1) {
+			if (max_pref < MAX_PREF_LETTER) {
 				max_pref++;
-				list = push_list_server(list, hostname, 0, 1, 0);
-			}
-			else
-			{
-				fprintf(stderr, "%d letter in alphabet...\n", MAX_PREF_LETTER);
+				list =
+				    push_list_server(list, hostname, 0, 1, 0);
+			} else {
+				fprintf(stderr, "%d letter in alphabet...\n",
+					MAX_PREF_LETTER);
 				exit(EXIT_FAILURE);
 			}
-		}
-		else if(sscanf(line, "#EXCLUDE %s", hostname) == 1)
-		{
+		} else if (sscanf(line, "#EXCLUDE %s", hostname) == 1) {
 			list = pop_list_server(list, hostname);
 		}
 	}
@@ -230,8 +204,7 @@ slist load_config(const char* ssh_config_file)
 	free(hostname);
 	fclose(fp);
 
-	if(list == NULL)
-	{
+	if (list == NULL) {
 		fprintf(stderr, "No data in config file...\n");
 		exit(EXIT_FAILURE);
 	}
@@ -239,18 +212,14 @@ slist load_config(const char* ssh_config_file)
 	return list;
 }
 
-
-void display_host(server* s, int number, const int show_type)
+void display_host(server * s, int number, const int show_type)
 {
 	int i = 0;
-	char* new_hostname = strdup(s->hostname);
+	char *new_hostname = strdup(s->hostname);
 
-	if(split_domain == 1)
-	{
-		while((char) new_hostname[i] != '\0')
-		{
-			if((char) new_hostname[i] == '.')
-			{
+	if (split_domain == 1) {
+		while ((char)new_hostname[i] != '\0') {
+			if ((char)new_hostname[i] == '.') {
 				new_hostname[i] = '\0';
 				break;
 			}
@@ -258,17 +227,20 @@ void display_host(server* s, int number, const int show_type)
 		}
 	}
 
-	switch(show_type)
-	{
-		case NORMAL_LIST:
-			printf("%s%5d) %-*.*s", s->my == 1 ? COLOR__SPECIAL_HOST : COLOR__DEFAULT, number, hostname_length, hostname_length, new_hostname);
-			break;
-		case PREF_LIST:
-			printf("%s%5s) %-*.*s", COLOR__PREFERED_SERVERS, (char*) &number, hostname_length, hostname_length, new_hostname);
-			break;
-		default:
-			fprintf(stderr, "W00t\n");
-			exit(EXIT_FAILURE);
+	switch (show_type) {
+	case NORMAL_LIST:
+		printf("%s%5d) %-*.*s",
+		       s->my == 1 ? COLOR__SPECIAL_HOST : COLOR__DEFAULT,
+		       number, hostname_length, hostname_length, new_hostname);
+		break;
+	case PREF_LIST:
+		printf("%s%5s) %-*.*s", COLOR__PREFERED_SERVERS,
+		       (char *)&number, hostname_length, hostname_length,
+		       new_hostname);
+		break;
+	default:
+		fprintf(stderr, "W00t\n");
+		exit(EXIT_FAILURE);
 	}
 
 	free(new_hostname);
@@ -278,46 +250,42 @@ void display_list(slist list, int modulo_display)
 {
 	int i = 1;
 	slist p_server = list;
-	while(p_server != NULL)
-	{
-		if(p_server->def == 1 || p_server->my == 1)
-		{
+	while (p_server != NULL) {
+		if (p_server->def == 1 || p_server->my == 1) {
 			display_host(p_server, i, NORMAL_LIST);
-			if(i % modulo_display == 0 && p_server->next != NULL)
+			if (i % modulo_display == 0 && p_server->next != NULL)
 				printf("\n");
 			i++;
 		}
 		p_server = p_server->next;
 	}
-	if(i > 1)
+	if (i > 1)
 		printf("%s\n", CNORMAL);
 }
+
 void display_pref_list(slist list, int modulo_display)
 {
 	int i = 1;
 	char c = 'A';
 	slist p_server = list;
-	while(p_server != NULL || c >= 'Z')
-	{
-		if(p_server->pref == 1)
-		{
+	while (p_server != NULL || c >= 'Z') {
+		if (p_server->pref == 1) {
 			display_host(p_server, c, PREF_LIST);
-			if(i % modulo_display == 0 && p_server->next != NULL)
+			if (i % modulo_display == 0 && p_server->next != NULL)
 				printf("\n");
 			i++;
 			c++;
 		}
 		p_server = p_server->next;
 	}
-	if(i > 1)
+	if (i > 1)
 		printf("%s\n", CNORMAL);
 }
 
 void free_list(slist list)
 {
 	slist tmp;
-	while(list != NULL)
-	{
+	while (list != NULL) {
 		tmp = list->next;
 		free(list->hostname);
 		free(list);
@@ -326,27 +294,24 @@ void free_list(slist list)
 }
 
 #define MAX_SS 64
-char* ia_get_server(slist list, char* input)
+char *ia_get_server(slist list, char *input)
 {
 	typedef struct {
-		char* hostname;
+		char *hostname;
 		unsigned short score;
 	} score_server;
 	slist p_list = list;
 	int i = 0, j = 0, id_char = 0;
-	char* p_char = NULL;
-	char* tmp = NULL;
+	char *p_char = NULL;
+	char *tmp = NULL;
 	char server_num[4] = "";
 
-	score_server* p_ss = NULL;
+	score_server *p_ss = NULL;
 	score_server ss;
 
-
 	p_char = input;
-	while(*p_char != '\0')
-	{
-		if(*p_char >= '0' && *p_char <= '9')
-		{
+	while (*p_char != '\0') {
+		if (*p_char >= '0' && *p_char <= '9') {
 			tmp = strndup(p_char, sizeof(char));
 			strlcat(server_num, tmp, sizeof(server_num));
 			free(tmp);
@@ -354,13 +319,11 @@ char* ia_get_server(slist list, char* input)
 		p_char++;
 	}
 
-	if(NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
+	if (NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
 		ALLOC_FAILURE();
 
-	while(p_list != NULL)
-	{
-		if(p_list->def == 0)
-		{
+	while (p_list != NULL) {
+		if (p_list->def == 0) {
 			p_list = p_list->next;
 			continue;
 		}
@@ -369,13 +332,14 @@ char* ia_get_server(slist list, char* input)
 		id_char = 1;
 
 		// First letter OK && we have the good number
-		if(strncasecmp(input, p_list->hostname, 1) == 0 && NULL != strstr(p_list->hostname, server_num))
-		{
+		if (strncasecmp(input, p_list->hostname, 1) == 0
+		    && NULL != strstr(p_list->hostname, server_num)) {
 			ss.hostname = strdup(p_list->hostname);
 			ss.score++;
-			while(input[id_char++] != '\0')
-			{
-				if(strncasecmp(&input[id_char], &p_list->hostname[id_char], 1) == 0)
+			while (input[id_char++] != '\0') {
+				if (strncasecmp
+				    (&input[id_char],
+				     &p_list->hostname[id_char], 1) == 0)
 					ss.score++;
 			}
 			p_ss[j] = ss;
@@ -384,8 +348,7 @@ char* ia_get_server(slist list, char* input)
 		p_list = p_list->next;
 	}
 
-	if(j == 0)
-	{
+	if (j == 0) {
 		fprintf(stderr, "Host not found!\n");
 		exit(EXIT_FAILURE);
 	}
@@ -394,9 +357,8 @@ char* ia_get_server(slist list, char* input)
 	ss.hostname = NULL;
 
 	// We search the better hostname
-	for(i = 0; i < j; i++)
-	{
-		if(ss.score < p_ss[i].score)
+	for (i = 0; i < j; i++) {
+		if (ss.score < p_ss[i].score)
 			ss = p_ss[i];
 	}
 	free(p_ss);
@@ -404,21 +366,17 @@ char* ia_get_server(slist list, char* input)
 	return ss.hostname;
 }
 
-char* scan_input(slist list, char* input)
+char *scan_input(slist list, char *input)
 {
 	char *tmp_hostname = NULL;
 	slist p = list;
 	int server_id = 0, id = 1;
 
 	// case digit
-	if(sscanf(input, "%d", (int*) &server_id) == 1)
-	{
-		while(p != NULL)
-		{
-			if(p->def == 1 || p->my == 1)
-			{
-				if(server_id == id)
-				{
+	if (sscanf(input, "%d", (int *)&server_id) == 1) {
+		while (p != NULL) {
+			if (p->def == 1 || p->my == 1) {
+				if (server_id == id) {
 					tmp_hostname = strdup(p->hostname);
 					break;
 				}
@@ -428,18 +386,16 @@ char* scan_input(slist list, char* input)
 		}
 	}
 	// case 1 letter
-	else if(strlen(input) == 1 && sscanf(input, "%1c", (char*) &server_id) == 1)
-	{
-		if((input[0] >= 'a' && input[0] <= 'z') || (input[0] >= 'A' && input[0] <= 'Z'))
-		{
+	else if (strlen(input) == 1
+		 && sscanf(input, "%1c", (char *)&server_id) == 1) {
+		if ((input[0] >= 'a' && input[0] <= 'z')
+		    || (input[0] >= 'A' && input[0] <= 'Z')) {
 			id = 'a';
-			while(p != NULL)
-			{
-				if(p->pref == 1)
-				{
-					if(tolower(input[0]) == id)
-					{
-						tmp_hostname = strdup(p->hostname);
+			while (p != NULL) {
+				if (p->pref == 1) {
+					if (tolower(input[0]) == id) {
+						tmp_hostname =
+						    strdup(p->hostname);
 						break;
 					}
 					id++;
@@ -449,13 +405,11 @@ char* scan_input(slist list, char* input)
 		}
 	}
 	// case AI :p
-	else
-	{
+	else {
 		tmp_hostname = ia_get_server(list, input);
 	}
 
-	if(tmp_hostname != NULL)
-	{
+	if (tmp_hostname != NULL) {
 		return tmp_hostname;
 	}
 
@@ -464,16 +418,15 @@ char* scan_input(slist list, char* input)
 	return NULL;
 }
 
-void terminal_title(char* title)
+void terminal_title(char *title)
 {
 	setbuf(stdout, NULL);
 	printf("\033]0;%s\007", title);
 }
 
-
-void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
+void ssh(const char *hostname, const char *ssh_bin, const char *ssh_config_file)
 {
-	char* command_arg[64];
+	char *command_arg[64];
 	char terminal[64] = "";
 	int i = 0, j;
 	pid_t child_pid;
@@ -493,16 +446,12 @@ void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 	printf("--------------------------------------\n\n");
 
 	child_pid = fork();
-	if(child_pid < 0)
-	{
+	if (child_pid < 0) {
 		fprintf(stderr, "Cannot fork!\n");
 		exit(EXIT_FAILURE);
-	}
-	else if(child_pid == 0)
-	{
+	} else if (child_pid == 0) {
 		// child process
-		if(execv(ssh_bin, command_arg) == -1)
-		{
+		if (execv(ssh_bin, command_arg) == -1) {
 			fprintf(stderr, "Cannot exec SSH_BIN: %s\n", ssh_bin);
 			exit(EXIT_FAILURE);
 		}
@@ -511,21 +460,20 @@ void ssh(const char* hostname, const char* ssh_bin, const char* ssh_config_file)
 
 	wait(NULL);
 
-	for(j = 0; j < i; j++)
+	for (j = 0; j < i; j++)
 		free(command_arg[j]);
 
 	terminal_title(TERMINAL_DEFAULT_TITLE);
 }
 
-
 int main(int argc, char **argv)
 {
 	slist list_server = NULL;
-	char* hostname = NULL;
-	char* input = NULL;
+	char *hostname = NULL;
+	char *input = NULL;
 	int c, option_index = 0, out_columns = OUT_COLUMNS;
-	char* ssh_config_file = NULL;
-	char* ssh_bin = NULL;
+	char *ssh_config_file = NULL;
+	char *ssh_bin = NULL;
 
 	static struct option long_options[] = {
 		{"bin", required_argument, 0, 'b'},
@@ -538,70 +486,74 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}
 	};
 
-	while((c = getopt_long(argc, argv, "b:c:ho:l:sv", long_options, &option_index)) != -1)
-	{
-		switch(c)
-		{
-			case 'b':
-				ssh_bin = strdup(optarg);
-				break;
-			case 'c':
-				ssh_config_file = strdup(optarg);
-				break;
-			case 'h':
-				printf("Usage:\n");
-				printf("\tse [OPTION]...\n");
-				printf("Options:\n");
-				printf("\t-b, --binary BINARY\n\t\tFull path to SSH binary (default: /usr/bin/ssh)\n");
-				printf("\t-c, --config config-file\n\t\tUse an alternate SSH config file (default: ~/.ssh/config)\n");
-				printf("\t-h, --help\n\t\tDisplay help and exit\n");
-				printf("\t-l, --hostname-length\n\t\tHostname length\n");
-				printf("\t-o, --out-columns number\n\t\tNumber of columns to display (default: 5)\n");
-				printf("\t-s, --split-name\n\t\tsplit domain (myhost.domain.tld -> myhost)\n");
-				printf("\t-v, --version\n\t\tOutput version information and exit\n");
-				exit(EXIT_FAILURE);
-			case 'l':
-				hostname_length = atoi(optarg);
-				break;
-			case 'o':
-				out_columns = atoi(optarg);
-				break;
-			case 's':
-				split_domain = 1;
-				break;
-			case 'v':
-				printf("se %s\n", VERSION);
-				exit(EXIT_FAILURE);
-			default:
-				exit(EXIT_FAILURE);
+	while ((c =
+		getopt_long(argc, argv, "b:c:ho:l:sv", long_options,
+			    &option_index)) != -1) {
+		switch (c) {
+		case 'b':
+			ssh_bin = strdup(optarg);
+			break;
+		case 'c':
+			ssh_config_file = strdup(optarg);
+			break;
+		case 'h':
+			printf("Usage:\n");
+			printf("\tse [OPTION]...\n");
+			printf("Options:\n");
+			printf
+			    ("\t-b, --binary BINARY\n\t\tFull path to SSH binary (default: /usr/bin/ssh)\n");
+			printf
+			    ("\t-c, --config config-file\n\t\tUse an alternate SSH config file (default: ~/.ssh/config)\n");
+			printf("\t-h, --help\n\t\tDisplay help and exit\n");
+			printf
+			    ("\t-l, --hostname-length\n\t\tHostname length\n");
+			printf
+			    ("\t-o, --out-columns number\n\t\tNumber of columns to display (default: 5)\n");
+			printf
+			    ("\t-s, --split-name\n\t\tsplit domain (myhost.domain.tld -> myhost)\n");
+			printf
+			    ("\t-v, --version\n\t\tOutput version information and exit\n");
+			exit(EXIT_FAILURE);
+		case 'l':
+			hostname_length = atoi(optarg);
+			break;
+		case 'o':
+			out_columns = atoi(optarg);
+			break;
+		case 's':
+			split_domain = 1;
+			break;
+		case 'v':
+			printf("se %s\n", VERSION);
+			exit(EXIT_FAILURE);
+		default:
+			exit(EXIT_FAILURE);
 		}
 	}
 
-	if(ssh_config_file == NULL)
-	{
-		if(NULL == (ssh_config_file = calloc(MAX_LENGTH_STRING, sizeof(char))))
+	if (ssh_config_file == NULL) {
+		if (NULL ==
+		    (ssh_config_file = calloc(MAX_LENGTH_STRING, sizeof(char))))
 			ALLOC_FAILURE();
-		snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING, "%s/.ssh/config", getenv("HOME"));
+		snprintf(ssh_config_file, sizeof(char) * MAX_LENGTH_STRING,
+			 "%s/.ssh/config", getenv("HOME"));
 	}
 
-	if(ssh_bin == NULL)
+	if (ssh_bin == NULL)
 		ssh_bin = strdup(SSH_BIN);
 
 	list_server = load_config(ssh_config_file);
 
-	if(NULL == (input = calloc(255, sizeof(char))))
+	if (NULL == (input = calloc(255, sizeof(char))))
 		ALLOC_FAILURE();
 
 	/* Check extra param: hostname pattern */
-	if(argv[optind] != NULL)
-	{
+	if (argv[optind] != NULL) {
 		input = argv[argc - 1];
-	}
-	else
-	{
+	} else {
 		display_list(list_server, out_columns);
 		display_pref_list(list_server, out_columns);
-		while(scanf("%255s", input) == 0);
+		while (scanf("%255s", input) == 0) ;
 	}
 
 	hostname = scan_input(list_server, input);
