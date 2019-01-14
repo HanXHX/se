@@ -2,7 +2,7 @@ Source: se
 Section: net
 Priority: extra
 Maintainer: Emilien Mantel <emilien.mantel@debianiste.org>
-Build-Depends: debhelper (>= 8.0.0), libc6-dev, libbsd-dev
+Build-Depends: debhelper (>= 10.0.0), libc6-dev, libbsd-dev
 Standards-Version: 3.9.3
 Homepage: https://github.com/HanXHX/se
 #Vcs-Git: git://git.debian.org/collab-maint/se.git
