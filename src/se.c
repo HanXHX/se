@@ -479,12 +479,12 @@ int main(int argc, char **argv)
 	char *ssh_bin = NULL;
 
 	static struct option long_options[] = {
-		{"bin", required_argument, 0, 'b'},
+		{"binary", required_argument, 0, 'b'},
 		{"config", required_argument, 0, 'c'},
 		{"help", no_argument, 0, 'h'},
+		{"hostname-length", required_argument, 0, 'l'},
 		{"out-columns", required_argument, 0, 'o'},
-		{"hostname-length", required_argument, 0, 'o'},
-		{"split-name", required_argument, 0, 's'},
+		{"split-name", no_argument, 0, 's'},
 		{"version", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
@@ -501,7 +501,7 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			printf("Usage:\n");
-			printf("\tse [OPTION]...\n");
+			printf("\tse [OPTION]... [HOSTNAME-PATTERN]\n");
 			printf("Options:\n");
 			printf
 			    ("\t-b, --binary BINARY\n\t\tFull path to SSH binary (default: /usr/bin/ssh)\n");
@@ -509,26 +509,37 @@ int main(int argc, char **argv)
 			    ("\t-c, --config config-file\n\t\tUse an alternate SSH config file (default: ~/.ssh/config)\n");
 			printf("\t-h, --help\n\t\tDisplay help and exit\n");
 			printf
-			    ("\t-l, --hostname-length\n\t\tHostname length\n");
+			    ("\t-l, --hostname-length NUMBER\n\t\tDisplayed hostname length (default: %d)\n",
+			     HOSTNAME_LENGTH);
 			printf
 			    ("\t-o, --out-columns number\n\t\tNumber of columns to display (default: 5)\n");
 			printf
 			    ("\t-s, --split-name\n\t\tsplit domain (myhost.domain.tld -> myhost)\n");
 			printf
 			    ("\t-v, --version\n\t\tOutput version information and exit\n");
-			exit(EXIT_FAILURE);
+			exit(EXIT_SUCCESS);
 		case 'l':
 			hostname_length = atoi(optarg);
+			if (hostname_length < 1) {
+				fprintf(stderr, "Invalid hostname length: %s\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'o':
 			out_columns = atoi(optarg);
+			if (out_columns < 1) {
+				fprintf(stderr, "Invalid columns number: %s\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 's':
 			split_domain = 1;
 			break;
 		case 'v':
 			printf("se %s\n", VERSION);
-			exit(EXIT_FAILURE);
+			exit(EXIT_SUCCESS);
 		default:
 			exit(EXIT_FAILURE);
 		}
