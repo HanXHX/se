@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <glob.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <ctype.h>
@@ -146,15 +147,60 @@ slist push_list_server(slist list, char *hostname, short def, short pref,
 	return list;
 }
 
-slist load_config(const char *ssh_config_file)
+#define MAX_INCLUDE_DEPTH 16
+
+static slist parse_config(slist list, const char *ssh_config_file,
+			  short *max_pref, int depth);
+
+/*
+ * Handles an "Include" directive the same way ssh_config(5) does:
+ * tilde expansion, glob patterns, and relative paths resolved from
+ * ~/.ssh. A pattern that matches nothing is silently ignored.
+ */
+static slist include_config(slist list, const char *pattern, short *max_pref,
+			    int depth)
 {
-	slist list = NULL;
+	glob_t results;
+	size_t i;
+	char *path = NULL;
+	int ret;
+
+	if (depth >= MAX_INCLUDE_DEPTH) {
+		fprintf(stderr, "Include nested too deeply: %s\n", pattern);
+		exit(EXIT_FAILURE);
+	}
+
+	if (pattern[0] == '/' || pattern[0] == '~') {
+		path = strdup(pattern);
+	} else {
+		if (NULL == (path = calloc(MAX_LENGTH_STRING, sizeof(char))))
+			ALLOC_FAILURE();
+		snprintf(path, MAX_LENGTH_STRING, "~/.ssh/%s", pattern);
+	}
+
+	ret = glob(path, GLOB_TILDE, NULL, &results);
+	if (ret == 0) {
+		for (i = 0; i < results.gl_pathc; i++)
+			list = parse_config(list, results.gl_pathv[i], max_pref,
+					    depth + 1);
+	} else if (ret != GLOB_NOMATCH) {
+		fprintf(stderr, "Can't expand Include pattern: %s\n", path);
+		exit(EXIT_FAILURE);
+	}
+
+	globfree(&results);
+	free(path);
+	return list;
+}
+
+static slist parse_config(slist list, const char *ssh_config_file,
+			  short *max_pref, int depth)
+{
 	char *hostname = NULL;
 	FILE *fp = NULL;
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t read;
-	short max_pref = 0;
 
 	if (NULL == (hostname = calloc(MAX_LENGTH_STRING, sizeof(char))))
 		ALLOC_FAILURE();
@@ -169,7 +215,7 @@ slist load_config(const char *ssh_config_file)
 		if (read < 5)
 			continue;
 
-		if (read > 128) {
+		if (read > MAX_LENGTH_STRING) {
 			fprintf(stderr, "Big config line size! %d read...\n",
 				(int)read);
 			exit(EXIT_FAILURE);
@@ -178,11 +224,13 @@ slist load_config(const char *ssh_config_file)
 		if (sscanf(line, "Host %s", hostname) == 1
 		    && strcmp("*", hostname) != 0) {
 			list = push_list_server(list, hostname, 1, 0, 0);
+		} else if (sscanf(line, "Include %s", hostname) == 1) {
+			list = include_config(list, hostname, max_pref, depth);
 		} else if (sscanf(line, "#MYHOST %s", hostname) == 1) {
 			list = push_list_server(list, hostname, 0, 0, 1);
 		} else if (sscanf(line, "#PREFHOST %s", hostname) == 1) {
-			if (max_pref < MAX_PREF_LETTER) {
-				max_pref++;
+			if (*max_pref < MAX_PREF_LETTER) {
+				(*max_pref)++;
 				list =
 				    push_list_server(list, hostname, 0, 1, 0);
 			} else {
@@ -197,6 +245,16 @@ slist load_config(const char *ssh_config_file)
 	free(line);
 	free(hostname);
 	fclose(fp);
+
+	return list;
+}
+
+slist load_config(const char *ssh_config_file)
+{
+	slist list = NULL;
+	short max_pref = 0;
+
+	list = parse_config(list, ssh_config_file, &max_pref, 0);
 
 	if (list == NULL) {
 		fprintf(stderr, "No data in config file...\n");
