@@ -1,15 +1,17 @@
 Source: se
 Section: net
-Priority: extra
+Priority: optional
 Maintainer: Emilien Mantel <emilien.mantel@debianiste.org>
-Build-Depends: debhelper (>= 10.0.0), libc6-dev, libbsd-dev
-Standards-Version: 3.9.3
+Build-Depends: debhelper-compat (= 13), perl
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
 Homepage: https://github.com/HanXHX/se
-#Vcs-Git: git://git.debian.org/collab-maint/se.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/se.git;a=summary
+Vcs-Git: https://github.com/HanXHX/se.git
+Vcs-Browser: https://github.com/HanXHX/se
 
 Package: se
 Architecture: any
 Depends: openssh-client, ${misc:Depends}, ${shlibs:Depends}
-Description: Fast connection to SSH 
- se is a front end for SSH. It parses your SSH config file to pick your servers.
+Description: Fast connection to SSH
+ se is a front end for SSH. It parses your SSH config file to pick your servers
+ by number, by favorite letter or by fuzzy pattern.

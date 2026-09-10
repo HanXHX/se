@@ -1,10 +1,18 @@
-se (1.0~dev-1~1.gbpc66d34) UNRELEASED; urgency=low
+se (1.0~beta4-1) unstable; urgency=medium
 
-  ** SNAPSHOT build @c66d345553872697166ff910c8b3e7c559e6ed73 **
+  * Fix a segfault with 26 PREFHOST entries and a stdin buffer overflow.
+  * Fix the long options table and validate numeric arguments.
+  * Rewrite the fuzzy host matching without leaks.
+  * Support the Include directive of ssh_config.
+  * Drop the libbsd dependency.
+  * Document -l, -s and Include in the man pages.
+  * Modernize the packaging: debhelper-compat 13, hardening flags,
+    Standards-Version 4.6.2, run the test suite at build time.
 
-  [ Emilien Mantel ]
-  * Initial release
+ -- Emilien Mantel <emilien.mantel@debianiste.org>  Thu, 10 Sep 2026 16:00:00 +0200
 
-  [ hanx ]
+se (1.0~dev-1) unstable; urgency=low
+
+  * Initial release.
 
  -- Emilien Mantel <emilien.mantel@debianiste.org>  Mon, 16 Dec 2013 09:37:47 +0100
