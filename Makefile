@@ -3,7 +3,9 @@ export_dir="./builds"
 dest_data="./debian/se"
 git_builder="debuild -i -I -us -uc"
 
-all: clean documentation bin 
+.PHONY: all documentation bin test clean deb
+
+all: clean documentation bin
 
 documentation:
 	@$(MAKE) -C doc all
@@ -11,9 +13,12 @@ documentation:
 bin:
 	@$(MAKE) -C src all
 
+test: bin
+	@sh tests/run.sh ./se
+
 clean:
-	@$(MAKE) -C src clean 
-	@$(MAKE) -C doc clean 
+	@$(MAKE) -C src clean
+	@$(MAKE) -C doc clean
 	@rm -rf $(export_dir)
 
 deb: clean documentation bin

@@ -3,7 +3,7 @@ se
 
 Fast connection to SSH
 
-[![Build Status](https://travis-ci.org/HanXHX/se.svg?branch=master)](https://travis-ci.org/HanXHX/se)
+[![CI](https://github.com/HanXHX/se/actions/workflows/ci.yml/badge.svg)](https://github.com/HanXHX/se/actions/workflows/ci.yml)
 
 Coding style
 ------------
