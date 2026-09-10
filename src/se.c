@@ -160,11 +160,6 @@ slist load_config(const char *ssh_config_file)
 	ssize_t read;
 	short max_pref = 0;
 
-	if (getenv("HOME") == NULL) {
-		fprintf(stderr, "Error! Can't get *HOME* environment var...\n");
-		exit(EXIT_FAILURE);
-	}
-
 	if (NULL == (hostname = calloc(MAX_LENGTH_STRING, sizeof(char))))
 		ALLOC_FAILURE();
 
@@ -296,34 +291,24 @@ void free_list(slist list)
 	}
 }
 
-#define MAX_SS 64
+/*
+ * Fuzzy match: the first letter must match, every digit of the input
+ * must appear in the hostname, then the host with the most matching
+ * characters (position by position) wins.
+ */
 char *ia_get_server(slist list, char *input)
 {
-	typedef struct {
-		char *hostname;
-		unsigned short score;
-	} score_server;
 	slist p_list = list;
-	int i = 0, j = 0, id_char = 0;
-	char *p_char = NULL;
-	char *tmp = NULL;
-	char server_num[4] = "";
+	size_t i, j = 0, len, input_len = strlen(input);
+	unsigned int score, best_score = 0;
+	char *best = NULL;
+	char server_num[MAX_INPUT_LENGTH + 1] = "";
 
-	score_server *p_ss = NULL;
-	score_server ss;
-
-	p_char = input;
-	while (*p_char != '\0') {
-		if (*p_char >= '0' && *p_char <= '9') {
-			tmp = strndup(p_char, sizeof(char));
-			strlcat(server_num, tmp, sizeof(server_num));
-			free(tmp);
-		}
-		p_char++;
+	for (i = 0; i < input_len; i++) {
+		if (input[i] >= '0' && input[i] <= '9')
+			server_num[j++] = input[i];
 	}
-
-	if (NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
-		ALLOC_FAILURE();
+	server_num[j] = '\0';
 
 	while (p_list != NULL) {
 		if (p_list->def == 0) {
@@ -331,42 +316,32 @@ char *ia_get_server(slist list, char *input)
 			continue;
 		}
 
-		ss.score = 0;
-		id_char = 1;
-
 		// First letter OK && we have the good number
 		if (strncasecmp(input, p_list->hostname, 1) == 0
 		    && NULL != strstr(p_list->hostname, server_num)) {
-			ss.hostname = strdup(p_list->hostname);
-			ss.score++;
-			while (input[id_char++] != '\0') {
-				if (strncasecmp
-				    (&input[id_char],
-				     &p_list->hostname[id_char], 1) == 0)
-					ss.score++;
+			len = strlen(p_list->hostname);
+			if (len > input_len)
+				len = input_len;
+			score = 0;
+			for (i = 0; i < len; i++) {
+				if (tolower((unsigned char)input[i]) ==
+				    tolower((unsigned char)p_list->hostname[i]))
+					score++;
 			}
-			p_ss[j] = ss;
-			j++;
+			if (score > best_score) {
+				best_score = score;
+				best = p_list->hostname;
+			}
 		}
 		p_list = p_list->next;
 	}
 
-	if (j == 0) {
+	if (best == NULL) {
 		fprintf(stderr, "Host not found!\n");
 		exit(EXIT_FAILURE);
 	}
 
-	ss.score = 0;
-	ss.hostname = NULL;
-
-	// We search the better hostname
-	for (i = 0; i < j; i++) {
-		if (ss.score < p_ss[i].score)
-			ss = p_ss[i];
-	}
-	free(p_ss);
-
-	return ss.hostname;
+	return strdup(best);
 }
 
 char *scan_input(slist list, char *input)
@@ -546,6 +521,11 @@ int main(int argc, char **argv)
 	}
 
 	if (ssh_config_file == NULL) {
+		if (getenv("HOME") == NULL) {
+			fprintf(stderr,
+				"Error! Can't get *HOME* environment var...\n");
+			exit(EXIT_FAILURE);
+		}
 		if (NULL ==
 		    (ssh_config_file = calloc(MAX_LENGTH_STRING, sizeof(char))))
 			ALLOC_FAILURE();
