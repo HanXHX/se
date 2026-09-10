@@ -32,6 +32,9 @@
 #define TERMINAL_DEFAULT_TITLE "Terminal"
 #define MAX_PREF_LETTER 26
 #define HOSTNAME_LENGTH 24
+#define MAX_INPUT_LENGTH 255
+#define STR_(x) #x
+#define STR(x) STR_(x)
 
 /* Colors :) */
 #define WHITE "\033[0m"
@@ -268,7 +271,7 @@ void display_pref_list(slist list, int modulo_display)
 	int i = 1;
 	char c = 'A';
 	slist p_server = list;
-	while (p_server != NULL || c >= 'Z') {
+	while (p_server != NULL && c <= 'Z') {
 		if (p_server->pref == 1) {
 			display_host(p_server, c, PREF_LIST);
 			if (i % modulo_display == 0 && p_server->next != NULL)
@@ -544,16 +547,18 @@ int main(int argc, char **argv)
 
 	list_server = load_config(ssh_config_file);
 
-	if (NULL == (input = calloc(255, sizeof(char))))
-		ALLOC_FAILURE();
-
 	/* Check extra param: hostname pattern */
 	if (argv[optind] != NULL) {
-		input = argv[argc - 1];
+		input = strdup(argv[optind]);
 	} else {
+		if (NULL == (input = calloc(MAX_INPUT_LENGTH + 1, sizeof(char))))
+			ALLOC_FAILURE();
 		display_list(list_server, out_columns);
 		display_pref_list(list_server, out_columns);
-		while (scanf("%255s", input) == 0) ;
+		if (scanf("%" STR(MAX_INPUT_LENGTH) "s", input) != 1) {
+			fprintf(stderr, "No input...\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	hostname = scan_input(list_server, input);
@@ -561,6 +566,7 @@ int main(int argc, char **argv)
 
 	// Valgrind loves me :)
 	free(hostname);
+	free(input);
 	free(ssh_config_file);
 	free(ssh_bin);
 	free_list(list_server);
