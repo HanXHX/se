@@ -17,10 +17,6 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#if defined(__linux__)
-#include <bsd/stdlib.h>
-#include <bsd/string.h>
-#endif
 
 #define OUT_COLUMNS 5
 #define NORMAL_LIST 0
@@ -33,6 +29,7 @@
 #define MAX_PREF_LETTER 26
 #define HOSTNAME_LENGTH 24
 #define MAX_INPUT_LENGTH 255
+#define MAX_LENGTH_STRING 128
 #define STR_(x) #x
 #define STR(x) STR_(x)
 
@@ -149,7 +146,6 @@ slist push_list_server(slist list, char *hostname, short def, short pref,
 	return list;
 }
 
-#define MAX_LENGTH_STRING 128
 slist load_config(const char *ssh_config_file)
 {
 	slist list = NULL;
@@ -213,6 +209,7 @@ slist load_config(const char *ssh_config_file)
 void display_host(server * s, int number, const int show_type)
 {
 	int i = 0;
+	char letter[2] = { (char)number, '\0' };
 	char *new_hostname = strdup(s->hostname);
 
 	if (split_domain == 1) {
@@ -233,8 +230,7 @@ void display_host(server * s, int number, const int show_type)
 		break;
 	case PREF_LIST:
 		printf("%s%5s) %-*.*s", COLOR__PREFERED_SERVERS,
-		       (char *)&number, hostname_length, hostname_length,
-		       new_hostname);
+		       letter, hostname_length, hostname_length, new_hostname);
 		break;
 	default:
 		fprintf(stderr, "W00t\n");
@@ -404,8 +400,8 @@ void terminal_title(char *title)
 
 void ssh(const char *hostname, const char *ssh_bin, const char *ssh_config_file)
 {
-	char *command_arg[64];
-	char terminal[64] = "";
+	char *command_arg[5];
+	char terminal[MAX_LENGTH_STRING] = "";
 	int i = 0, j;
 	pid_t child_pid;
 
@@ -415,8 +411,7 @@ void ssh(const char *hostname, const char *ssh_bin, const char *ssh_config_file)
 	command_arg[i++] = strdup(hostname);
 	command_arg[i] = NULL;
 
-	strlcat(terminal, "ssh://", sizeof(terminal));
-	strlcat(terminal, hostname, sizeof(terminal));
+	snprintf(terminal, sizeof(terminal), "ssh://%s", hostname);
 	terminal_title(terminal);
 
 	printf("--------------------------------------\n");
