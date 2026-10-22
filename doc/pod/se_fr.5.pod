@@ -26,34 +26,36 @@ Noms préférés B<#PREFHOST foo@bar.tld>
 
 =item 4.
 
-Noms à excluee B<#EXCLUDE bar.tld>
+Noms à exclure B<#EXCLUDE bar.tld>
 
 =back
 
 =head1 DESCRIPTION
 
+se(1) lit votre configuration SSH ligne par ligne. Les directives B<Include> sont suivies comme le fait ssh_config(5) : expansion du tilde, motifs glob, et chemins relatifs résolus depuis I<~/.ssh>.
+
 =head2 Nom par défaut
 
-Toute ligne començant par B<Host> est ajoutée à la liste.
-ssh_config(5) accepte les jokers. se(1) exclue toute les lignes avec des B<*>.
+Toute ligne commençant par B<Host> est ajoutée à la liste.
+ssh_config(5) accepte les jokers. se(1) ignore la ligne B<Host *>.
 
-Ils peuvent être accédés par leur "id" (chiffres) pour par "IA". Exemple : foobar-01 peut être accédé par B<f1> ou B<fo1>...
+Ils peuvent être accédés par leur "id" (chiffres) ou par "IA". Exemple : foobar-01 peut être accédé par B<f1> ou B<fo1>...
 
-Certains nombs peuvent être exclus (voir : I<Noms exclus>).
+Certains noms peuvent être exclus (voir : I<Noms exclus>).
 
 =head2 Autres noms
 
-Vous pouvez ajouter d'autres noms qui ne sont pas présent dans la configuration ssh (B<#MYHOST foo.bar>). Ces noms ne peuvent être accédés uniquement par leur "id".
+Vous pouvez ajouter d'autres noms qui ne sont pas présent dans la configuration ssh (B<#MYHOST foo.bar>). Ces noms ne peuvent être accédés que par leur "id".
 
 =head2 Noms préférés 
 
-Les noms préférés sont des raccourcis rapides et accessibles uniquement par une lettre. Dans votre conguration SSH, vous pouvez mettre : B<#PREFHOST foo.bar>.
+Les noms préférés sont des raccourcis rapides et accessibles uniquement par une lettre. Dans votre configuration SSH, vous pouvez mettre : B<#PREFHOST foo.bar>.
 
 Attention, dans l'alphabet, nous avons uniquement 26 lettres (a -> z).
 
 =head2 Noms exclus
 
-Vous pouvez exclude des noms par défaut. Dans la conguration, vous pouvez mettre : B<#EXCLUDE foo.bar>. Attention, il faut toujours ajouter la liste d'exclusion à la fin du fichier de configuration.
+Vous pouvez exclure des noms par défaut. Dans la configuration, vous pouvez mettre : B<#EXCLUDE foo.bar>. Attention, il faut toujours ajouter la liste d'exclusion à la fin du fichier de configuration.
 
 =head1 EXEMPLE
 

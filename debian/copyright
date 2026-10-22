@@ -1,9 +1,9 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: se
-Source: https://github.com/HanXHX/se/ 
+Source: https://github.com/HanXHX/se/
 
 Files: *
-Copyright: 2013 Emilien Mantel <emilien.mantel@debianiste.org>
+Copyright: 2013-2026 Emilien Mantel <emilien.mantel@debianiste.org>
 License: GPL-2.0+
 
 

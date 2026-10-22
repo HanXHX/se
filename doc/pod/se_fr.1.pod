@@ -6,11 +6,13 @@ se - Connexion rapide à SSH
 
 =head1 SYNOPSIS
 
-B<se> [I<OPTION>]...
+B<se> [I<OPTION>]... [I<MOTIF>]
 
 =head1 DESCRIPTION
 
-B<se> est une surccouche de SSH. Il lit votre configuration et récupère une liste de noms d'hôtes. Vous pouvez aussi ajouter des noms en commentaire.
+B<se> est une surcouche de SSH. Il lit votre configuration et récupère une liste de noms d'hôtes. Vous pouvez aussi ajouter des noms en commentaire.
+
+Sans I<MOTIF>, B<se> affiche la liste des hôtes et lit la sélection sur l'entrée standard. I<MOTIF> peut être un numéro d'hôte, une lettre de favori ou un motif approximatif (voir se(5)).
 
 =head1 OPTIONS
 
@@ -28,9 +30,17 @@ Utiliser un autre fichier de configuration SSH (par défaut :  ~/.ssh/config)
 
 Affiche l'aide et quitte le programme
 
+=item B<-l>, B<--hostname-length> I<NOMBRE>
+
+Longueur des noms d'hôte affichés (par défaut : 24)
+
 =item B<-o>, B<--out-columns> I<NOMBRE>
 
 Nombre de colonnes à afficher (par défaut : 5)
+
+=item B<-s>, B<--split-name>
+
+N'affiche que la première partie du nom d'hôte (monhote.domaine.tld -> monhote)
 
 =item B<-v>, B<--version>
 
@@ -44,13 +54,13 @@ Affiche la version et quitte le programme
 
 =item I<~/.ssh/config>
 
-Configuration par utilisateur. Voir se(5) pour plus détails.
+Configuration par utilisateur. Voir se(5) pour plus de détails.
 
 =back
 
 =head1 BUGS
 
-Envoyez moi un email...
+Ouvrez un ticket sur https://github.com/HanXHX/se
 
 =head1 AUTEUR
 

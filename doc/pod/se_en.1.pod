@@ -6,11 +6,13 @@ se - Fast connection to SSH
 
 =head1 SYNOPSIS
 
-B<se> [I<OPTION>]...
+B<se> [I<OPTION>]... [I<PATTERN>]
 
 =head1 DESCRIPTION
 
-B<se> is a front end for SSH. It parse your SSH config file to pick your servers. You can add servers with comments in config. 
+B<se> is a front end for SSH. It parses your SSH config file to pick your servers. You can add servers with comments in the config file.
+
+Without I<PATTERN>, B<se> displays the host list and reads the selection on standard input. I<PATTERN> can be a host number, a favorite letter, or a fuzzy pattern (see se(5)).
 
 =head1 OPTIONS
 
@@ -28,9 +30,17 @@ Use an alternate SSH config file (default: ~/.ssh/config)
 
 Display help and exit
 
+=item B<-l>, B<--hostname-length> I<NUMBER>
+
+Displayed hostname length (default: 24)
+
 =item B<-o>, B<--out-columns> I<NUMBER>
 
 Number of columns to display (default: 5)
+
+=item B<-s>, B<--split-name>
+
+Only display the first label of the hostname (myhost.domain.tld -> myhost)
 
 =item B<-v>, B<--version>
 
@@ -50,11 +60,11 @@ Per user configuration file. See se(5) for further details.
 
 =head1 BUGS
 
-Please write me an email...
+Please open an issue on https://github.com/HanXHX/se
 
 =head1 AUTHOR
 
-B<se> was writen by Emilien Mantel <S<emilien.mantel@debianiste.org>>.
+B<se> was written by Emilien Mantel <S<emilien.mantel@debianiste.org>>.
 
 =head1 SEE ALSO
 

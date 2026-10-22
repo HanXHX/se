@@ -30,16 +30,14 @@ exclude hostnames B<#EXCLUDE bar.tld>
 
 =back
 
-B<foo> { B<this>|B<that> } [ B<-flags> ] [ B<-o> I<option> ] I<argument> [ I<more...> ]
-
 =head1 DESCRIPTION
 
-se(1) reads your SSH config file and check every line.
+se(1) reads your SSH config file and checks every line. B<Include> directives are followed the same way ssh_config(5) does: tilde expansion, glob patterns, and relative paths resolved from I<~/.ssh>.
 
 =head2 Default
 
 Every line started by B<Host> is added in the list.
-ssh_config(5) accepts wildcards. se(1) exclude every lines with B<*>.
+ssh_config(5) accepts wildcards. se(1) ignores the B<Host *> line.
 
 Default hosts can be accessed by their id (digits) or by "AI". Example: foobar-01 can be accessed by B<f1> or B<fo1>...
 
@@ -47,7 +45,7 @@ Some "default hostname" can be excluded (see: I<Exclude hostname>).
 
 =head2 Other
 
-You can add other hostnames in comments with B<#MYHOST foo.bar>. These hosts are only acceded by digit in stdin.
+You can add other hostnames in comments with B<#MYHOST foo.bar>. These hosts can only be selected by their number.
 
 =head2 Prefered 
 
@@ -57,7 +55,7 @@ Be careful, in alphabet, we have 26 letters (a -> z).
 
 =head2 Exclude
 
-You can exclude some "default hosts" in se(1). You can set with B<#EXCLUDE foo.bar>. Allways put the exclude in the end of your SSH configuration.
+You can exclude some "default hosts" in se(1). You can set with B<#EXCLUDE foo.bar>. Always put the exclusions at the end of your SSH configuration.
 
 =head1 EXAMPLE
 
@@ -84,7 +82,7 @@ Example of SSH config:
 
 =head1 AUTHOR
 
-se(1) was writen by Emilien Mantel <S<emilien.mantel@debianiste.org>>
+se(1) was written by Emilien Mantel <S<emilien.mantel@debianiste.org>>
 
 =head1 SEE ALSO
 

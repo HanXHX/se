@@ -1,18 +1,12 @@
-CC=/usr/bin/gcc
-MAKE=/usr/bin/make
+CC ?= gcc
 VERSION = $(shell cat ../VERSION)
-CONSTANTS = -DDEBUG -DVERSION='"$(VERSION)"'
-L =
+CFLAGS ?= -O2 -Wall -Wextra
+CFLAGS += -Werror -DVERSION='"$(VERSION)"'
 
-UNAME=$(shell uname)
-ifeq ($(UNAME), Linux)
-	L = -lbsd
-endif
-
-all:  
+all:
 	@echo 'Compiling...'
-	@$(CC) se.c -O3 -Wall -Werror $(CONSTANTS) $(L) -o ../se
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) se.c -o ../se
 	@echo 'Done...'
 
 clean:
-	@rm -f ../se 
+	@rm -f ../se

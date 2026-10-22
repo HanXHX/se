@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: make
+
+      - name: Run tests
+        run: make test
+
+      - name: Rebuild with sanitizers
+        run: make -C src clean && CFLAGS="-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer" make -C src
+
+      - name: Run tests under sanitizers
+        run: sh tests/run.sh ./se
+
+  package:
+    name: Debian package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: sudo apt-get update -qq && sudo apt-get install -qq --no-install-recommends build-essential debhelper devscripts
+
+      - name: Build package
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Inspect package
+        run: dpkg -c ../se_*.deb

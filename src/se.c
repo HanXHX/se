@@ -12,15 +12,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <glob.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#if defined(__linux__)
-#include <bsd/stdlib.h>
-#include <bsd/string.h>
-#endif
 
 #define OUT_COLUMNS 5
 #define NORMAL_LIST 0
@@ -32,6 +29,10 @@
 #define TERMINAL_DEFAULT_TITLE "Terminal"
 #define MAX_PREF_LETTER 26
 #define HOSTNAME_LENGTH 24
+#define MAX_INPUT_LENGTH 255
+#define MAX_LENGTH_STRING 128
+#define STR_(x) #x
+#define STR(x) STR_(x)
 
 /* Colors :) */
 #define WHITE "\033[0m"
@@ -146,21 +147,60 @@ slist push_list_server(slist list, char *hostname, short def, short pref,
 	return list;
 }
 
-#define MAX_LENGTH_STRING 128
-slist load_config(const char *ssh_config_file)
+#define MAX_INCLUDE_DEPTH 16
+
+static slist parse_config(slist list, const char *ssh_config_file,
+			  short *max_pref, int depth);
+
+/*
+ * Handles an "Include" directive the same way ssh_config(5) does:
+ * tilde expansion, glob patterns, and relative paths resolved from
+ * ~/.ssh. A pattern that matches nothing is silently ignored.
+ */
+static slist include_config(slist list, const char *pattern, short *max_pref,
+			    int depth)
 {
-	slist list = NULL;
+	glob_t results;
+	size_t i;
+	char *path = NULL;
+	int ret;
+
+	if (depth >= MAX_INCLUDE_DEPTH) {
+		fprintf(stderr, "Include nested too deeply: %s\n", pattern);
+		exit(EXIT_FAILURE);
+	}
+
+	if (pattern[0] == '/' || pattern[0] == '~') {
+		path = strdup(pattern);
+	} else {
+		if (NULL == (path = calloc(MAX_LENGTH_STRING, sizeof(char))))
+			ALLOC_FAILURE();
+		snprintf(path, MAX_LENGTH_STRING, "~/.ssh/%s", pattern);
+	}
+
+	ret = glob(path, GLOB_TILDE, NULL, &results);
+	if (ret == 0) {
+		for (i = 0; i < results.gl_pathc; i++)
+			list = parse_config(list, results.gl_pathv[i], max_pref,
+					    depth + 1);
+	} else if (ret != GLOB_NOMATCH) {
+		fprintf(stderr, "Can't expand Include pattern: %s\n", path);
+		exit(EXIT_FAILURE);
+	}
+
+	globfree(&results);
+	free(path);
+	return list;
+}
+
+static slist parse_config(slist list, const char *ssh_config_file,
+			  short *max_pref, int depth)
+{
 	char *hostname = NULL;
 	FILE *fp = NULL;
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t read;
-	short max_pref = 0;
-
-	if (getenv("HOME") == NULL) {
-		fprintf(stderr, "Error! Can't get *HOME* environment var...\n");
-		exit(EXIT_FAILURE);
-	}
 
 	if (NULL == (hostname = calloc(MAX_LENGTH_STRING, sizeof(char))))
 		ALLOC_FAILURE();
@@ -175,7 +215,7 @@ slist load_config(const char *ssh_config_file)
 		if (read < 5)
 			continue;
 
-		if (read > 128) {
+		if (read > MAX_LENGTH_STRING) {
 			fprintf(stderr, "Big config line size! %d read...\n",
 				(int)read);
 			exit(EXIT_FAILURE);
@@ -184,11 +224,13 @@ slist load_config(const char *ssh_config_file)
 		if (sscanf(line, "Host %s", hostname) == 1
 		    && strcmp("*", hostname) != 0) {
 			list = push_list_server(list, hostname, 1, 0, 0);
+		} else if (sscanf(line, "Include %s", hostname) == 1) {
+			list = include_config(list, hostname, max_pref, depth);
 		} else if (sscanf(line, "#MYHOST %s", hostname) == 1) {
 			list = push_list_server(list, hostname, 0, 0, 1);
 		} else if (sscanf(line, "#PREFHOST %s", hostname) == 1) {
-			if (max_pref < MAX_PREF_LETTER) {
-				max_pref++;
+			if (*max_pref < MAX_PREF_LETTER) {
+				(*max_pref)++;
 				list =
 				    push_list_server(list, hostname, 0, 1, 0);
 			} else {
@@ -204,6 +246,16 @@ slist load_config(const char *ssh_config_file)
 	free(hostname);
 	fclose(fp);
 
+	return list;
+}
+
+slist load_config(const char *ssh_config_file)
+{
+	slist list = NULL;
+	short max_pref = 0;
+
+	list = parse_config(list, ssh_config_file, &max_pref, 0);
+
 	if (list == NULL) {
 		fprintf(stderr, "No data in config file...\n");
 		exit(EXIT_FAILURE);
@@ -215,6 +267,7 @@ slist load_config(const char *ssh_config_file)
 void display_host(server * s, int number, const int show_type)
 {
 	int i = 0;
+	char letter[2] = { (char)number, '\0' };
 	char *new_hostname = strdup(s->hostname);
 
 	if (split_domain == 1) {
@@ -235,8 +288,7 @@ void display_host(server * s, int number, const int show_type)
 		break;
 	case PREF_LIST:
 		printf("%s%5s) %-*.*s", COLOR__PREFERED_SERVERS,
-		       (char *)&number, hostname_length, hostname_length,
-		       new_hostname);
+		       letter, hostname_length, hostname_length, new_hostname);
 		break;
 	default:
 		fprintf(stderr, "W00t\n");
@@ -268,7 +320,7 @@ void display_pref_list(slist list, int modulo_display)
 	int i = 1;
 	char c = 'A';
 	slist p_server = list;
-	while (p_server != NULL || c >= 'Z') {
+	while (p_server != NULL && c <= 'Z') {
 		if (p_server->pref == 1) {
 			display_host(p_server, c, PREF_LIST);
 			if (i % modulo_display == 0 && p_server->next != NULL)
@@ -293,34 +345,24 @@ void free_list(slist list)
 	}
 }
 
-#define MAX_SS 64
+/*
+ * Fuzzy match: the first letter must match, every digit of the input
+ * must appear in the hostname, then the host with the most matching
+ * characters (position by position) wins.
+ */
 char *ia_get_server(slist list, char *input)
 {
-	typedef struct {
-		char *hostname;
-		unsigned short score;
-	} score_server;
 	slist p_list = list;
-	int i = 0, j = 0, id_char = 0;
-	char *p_char = NULL;
-	char *tmp = NULL;
-	char server_num[4] = "";
+	size_t i, j = 0, len, input_len = strlen(input);
+	unsigned int score, best_score = 0;
+	char *best = NULL;
+	char server_num[MAX_INPUT_LENGTH + 1] = "";
 
-	score_server *p_ss = NULL;
-	score_server ss;
-
-	p_char = input;
-	while (*p_char != '\0') {
-		if (*p_char >= '0' && *p_char <= '9') {
-			tmp = strndup(p_char, sizeof(char));
-			strlcat(server_num, tmp, sizeof(server_num));
-			free(tmp);
-		}
-		p_char++;
+	for (i = 0; i < input_len; i++) {
+		if (input[i] >= '0' && input[i] <= '9')
+			server_num[j++] = input[i];
 	}
-
-	if (NULL == (p_ss = calloc(MAX_SS, sizeof(score_server))))
-		ALLOC_FAILURE();
+	server_num[j] = '\0';
 
 	while (p_list != NULL) {
 		if (p_list->def == 0) {
@@ -328,42 +370,32 @@ char *ia_get_server(slist list, char *input)
 			continue;
 		}
 
-		ss.score = 0;
-		id_char = 1;
-
 		// First letter OK && we have the good number
 		if (strncasecmp(input, p_list->hostname, 1) == 0
 		    && NULL != strstr(p_list->hostname, server_num)) {
-			ss.hostname = strdup(p_list->hostname);
-			ss.score++;
-			while (input[id_char++] != '\0') {
-				if (strncasecmp
-				    (&input[id_char],
-				     &p_list->hostname[id_char], 1) == 0)
-					ss.score++;
+			len = strlen(p_list->hostname);
+			if (len > input_len)
+				len = input_len;
+			score = 0;
+			for (i = 0; i < len; i++) {
+				if (tolower((unsigned char)input[i]) ==
+				    tolower((unsigned char)p_list->hostname[i]))
+					score++;
 			}
-			p_ss[j] = ss;
-			j++;
+			if (score > best_score) {
+				best_score = score;
+				best = p_list->hostname;
+			}
 		}
 		p_list = p_list->next;
 	}
 
-	if (j == 0) {
+	if (best == NULL) {
 		fprintf(stderr, "Host not found!\n");
 		exit(EXIT_FAILURE);
 	}
 
-	ss.score = 0;
-	ss.hostname = NULL;
-
-	// We search the better hostname
-	for (i = 0; i < j; i++) {
-		if (ss.score < p_ss[i].score)
-			ss = p_ss[i];
-	}
-	free(p_ss);
-
-	return ss.hostname;
+	return strdup(best);
 }
 
 char *scan_input(slist list, char *input)
@@ -426,8 +458,8 @@ void terminal_title(char *title)
 
 void ssh(const char *hostname, const char *ssh_bin, const char *ssh_config_file)
 {
-	char *command_arg[64];
-	char terminal[64] = "";
+	char *command_arg[5];
+	char terminal[MAX_LENGTH_STRING] = "";
 	int i = 0, j;
 	pid_t child_pid;
 
@@ -437,8 +469,7 @@ void ssh(const char *hostname, const char *ssh_bin, const char *ssh_config_file)
 	command_arg[i++] = strdup(hostname);
 	command_arg[i] = NULL;
 
-	strlcat(terminal, "ssh://", sizeof(terminal));
-	strlcat(terminal, hostname, sizeof(terminal));
+	snprintf(terminal, sizeof(terminal), "ssh://%s", hostname);
 	terminal_title(terminal);
 
 	printf("--------------------------------------\n");
@@ -476,12 +507,12 @@ int main(int argc, char **argv)
 	char *ssh_bin = NULL;
 
 	static struct option long_options[] = {
-		{"bin", required_argument, 0, 'b'},
+		{"binary", required_argument, 0, 'b'},
 		{"config", required_argument, 0, 'c'},
 		{"help", no_argument, 0, 'h'},
+		{"hostname-length", required_argument, 0, 'l'},
 		{"out-columns", required_argument, 0, 'o'},
-		{"hostname-length", required_argument, 0, 'o'},
-		{"split-name", required_argument, 0, 's'},
+		{"split-name", no_argument, 0, 's'},
 		{"version", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
@@ -498,7 +529,7 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			printf("Usage:\n");
-			printf("\tse [OPTION]...\n");
+			printf("\tse [OPTION]... [HOSTNAME-PATTERN]\n");
 			printf("Options:\n");
 			printf
 			    ("\t-b, --binary BINARY\n\t\tFull path to SSH binary (default: /usr/bin/ssh)\n");
@@ -506,32 +537,48 @@ int main(int argc, char **argv)
 			    ("\t-c, --config config-file\n\t\tUse an alternate SSH config file (default: ~/.ssh/config)\n");
 			printf("\t-h, --help\n\t\tDisplay help and exit\n");
 			printf
-			    ("\t-l, --hostname-length\n\t\tHostname length\n");
+			    ("\t-l, --hostname-length NUMBER\n\t\tDisplayed hostname length (default: %d)\n",
+			     HOSTNAME_LENGTH);
 			printf
 			    ("\t-o, --out-columns number\n\t\tNumber of columns to display (default: 5)\n");
 			printf
 			    ("\t-s, --split-name\n\t\tsplit domain (myhost.domain.tld -> myhost)\n");
 			printf
 			    ("\t-v, --version\n\t\tOutput version information and exit\n");
-			exit(EXIT_FAILURE);
+			exit(EXIT_SUCCESS);
 		case 'l':
 			hostname_length = atoi(optarg);
+			if (hostname_length < 1) {
+				fprintf(stderr, "Invalid hostname length: %s\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'o':
 			out_columns = atoi(optarg);
+			if (out_columns < 1) {
+				fprintf(stderr, "Invalid columns number: %s\n",
+					optarg);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 's':
 			split_domain = 1;
 			break;
 		case 'v':
 			printf("se %s\n", VERSION);
-			exit(EXIT_FAILURE);
+			exit(EXIT_SUCCESS);
 		default:
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	if (ssh_config_file == NULL) {
+		if (getenv("HOME") == NULL) {
+			fprintf(stderr,
+				"Error! Can't get *HOME* environment var...\n");
+			exit(EXIT_FAILURE);
+		}
 		if (NULL ==
 		    (ssh_config_file = calloc(MAX_LENGTH_STRING, sizeof(char))))
 			ALLOC_FAILURE();
@@ -544,16 +591,18 @@ int main(int argc, char **argv)
 
 	list_server = load_config(ssh_config_file);
 
-	if (NULL == (input = calloc(255, sizeof(char))))
-		ALLOC_FAILURE();
-
 	/* Check extra param: hostname pattern */
 	if (argv[optind] != NULL) {
-		input = argv[argc - 1];
+		input = strdup(argv[optind]);
 	} else {
+		if (NULL == (input = calloc(MAX_INPUT_LENGTH + 1, sizeof(char))))
+			ALLOC_FAILURE();
 		display_list(list_server, out_columns);
 		display_pref_list(list_server, out_columns);
-		while (scanf("%255s", input) == 0) ;
+		if (scanf("%" STR(MAX_INPUT_LENGTH) "s", input) != 1) {
+			fprintf(stderr, "No input...\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	hostname = scan_input(list_server, input);
@@ -561,6 +610,7 @@ int main(int argc, char **argv)
 
 	// Valgrind loves me :)
 	free(hostname);
+	free(input);
 	free(ssh_config_file);
 	free(ssh_bin);
 	free_list(list_server);
