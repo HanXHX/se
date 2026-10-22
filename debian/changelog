@@ -1,3 +1,11 @@
+se (1.0.0-1) unstable; urgency=medium
+
+  * New upstream release 1.0.0, first stable version.
+  * Build the amd64 package and publish it on GitHub from release tags.
+  * Run the test suite and sanitizer builds in GitHub Actions.
+
+ -- Emilien Mantel <emilien.mantel@debianiste.org>  Thu, 22 Oct 2026 10:00:00 +0200
+
 se (1.0~beta4-1) unstable; urgency=medium
 
   * Fix a segfault with 26 PREFHOST entries and a stdin buffer overflow.
