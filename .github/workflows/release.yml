@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  deb:
+    name: Binary and Debian package (amd64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The tag, the VERSION file and debian/changelog must agree.
+      # Upstream "v1.0-beta4" maps to Debian "1.0~beta4-N", "v1.0.0" to "1.0.0-N".
+      - name: Check version consistency
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          file="$(cat VERSION)"
+          deb="$(dpkg-parsechangelog -S Version)"
+          expected="$(echo "${tag#v}" | tr '-' '~')"
+          echo "tag=$tag VERSION=$file debian=$deb"
+          [ "$tag" = "$file" ] || { echo "::error::Tag $tag does not match VERSION ($file)"; exit 1; }
+          [ "${deb%-*}" = "$expected" ] || { echo "::error::debian/changelog ($deb) does not match tag ($expected)"; exit 1; }
+
+      - name: Build and test
+        run: make && make test
+
+      # dpkg-buildpackage cleans the tree, so keep the binary before it runs.
+      - name: Collect binary
+        run: |
+          mkdir -p dist
+          cp se "dist/se-${GITHUB_REF_NAME}-linux-amd64"
+          file dist/se-*
+
+      - name: Install packaging tools
+        run: sudo apt-get update -qq && sudo apt-get install -qq --no-install-recommends build-essential debhelper devscripts
+
+      - name: Build package
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Collect package
+        run: |
+          mv ../se_*_amd64.deb dist/
+          dpkg -I dist/*.deb
+          dpkg -c dist/*.deb
+          (cd dist && sha256sum se-* *.deb > SHA256SUMS)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: se-amd64
+          path: dist/
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *alpha*|*beta*|*rc*) prerelease="--prerelease" ;; esac
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes $prerelease
+          fi
